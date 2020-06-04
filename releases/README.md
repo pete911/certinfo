@@ -1,0 +1,1 @@
+output directory for `make release` command

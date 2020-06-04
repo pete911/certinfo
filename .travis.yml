@@ -1,0 +1,39 @@
+language: go
+
+go:
+  - 1.14.x
+
+git:
+  depth: false
+  quiet: true
+  submodules: false
+
+branches:
+  only:
+    - master
+
+services:
+  - docker
+
+script:
+  - "make test"
+  - "VERSION=$TRAVIS_BUILD_NUMBER make image"
+  - "make release"
+
+before_deploy:
+  - git config --local user.name "pete911"
+  - git config --local user.email "p.reisinger@gmail.com"
+  - git tag $TRAVIS_BUILD_NUMBER
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file:
+    - "releases/certinfo_linux.tar.gz"
+    - "releases/certinfo_darwin.tar.gz"
+    - "releases/certinfo_windows.tar.gz"
+  skip_cleanup: true
+
+after_success:
+  docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ;
+  VERSION=$TRAVIS_BUILD_NUMBER make push-image ;
