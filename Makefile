@@ -5,13 +5,13 @@ test:
 	go clean -testcache && go test -cover ./...
 
 build: test
-	go build -mod vendor
+	go build -ldflags "-X main.Version=${VERSION}" -mod vendor
 
 install: test
-	go install -mod vendor
+	go install -ldflags "-X main.Version=${VERSION}" -mod vendor
 
 image:
-	docker build -t ${IMAGE}:${VERSION} .
+	docker build --build-arg version=${VERSION} -t ${IMAGE}:${VERSION} .
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 
 push-image:
@@ -19,7 +19,7 @@ push-image:
 	docker push ${IMAGE}:latest
 
 release:
-	docker build -t certinfo-releases -f Releases.Dockerfile .
+	docker build --build-arg version=${VERSION} -t certinfo-releases -f Releases.Dockerfile .
 	docker create -ti --name certinfo-releases certinfo-releases sh
 	docker cp certinfo-releases:/releases/certinfo_linux.tar.gz releases/
 	docker cp certinfo-releases:/releases/certinfo_darwin.tar.gz releases/

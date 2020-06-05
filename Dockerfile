@@ -4,7 +4,8 @@ RUN apk add --no-cache gcc libc-dev
 WORKDIR /go/src/app
 COPY . .
 RUN go test ./...
-RUN go build -o /bin/certinfo
+ARG version=dev
+RUN go build -ldflags "-X main.Version=$version" -o /bin/certinfo
 
 FROM alpine:3.12
 

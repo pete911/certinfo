@@ -7,18 +7,20 @@ import (
 )
 
 type Flags struct {
-	Expiry bool
-	Args   []string
+	Expiry  bool
+	Version bool
+	Args    []string
 }
 
 func ParseFlags() (Flags, error) {
 
 	f := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	expiry := f.Bool("expiry", getBoolEnv("CERTINFO_EXPIRY", false), "print expiry of certificates")
+	version := f.Bool("version", getBoolEnv("CERTINFO_VERSION", false), "certinfo version")
 	if err := f.Parse(os.Args[1:]); err != nil {
 		return Flags{}, err
 	}
-	return Flags{Expiry: boolValue(expiry), Args: f.Args()}, nil
+	return Flags{Expiry: boolValue(expiry), Version: boolValue(version), Args: f.Args()}, nil
 }
 
 func getBoolEnv(envName string, defaultValue bool) bool {

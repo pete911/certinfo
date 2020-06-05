@@ -8,12 +8,19 @@ import (
 	"strings"
 )
 
+var Version = "dev"
+
 func main() {
 
 	flags, err := ParseFlags()
 	if err != nil {
 		fmt.Sprintf("cannot parse flags: %v", err)
 		os.Exit(1)
+	}
+
+	if flags.Version {
+		fmt.Println(Version)
+		os.Exit(0)
 	}
 
 	certificatesFiles := LoadCertificatesLocations(flags.Args)
