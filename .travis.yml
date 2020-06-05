@@ -1,5 +1,8 @@
 language: go
 
+env:
+  - VERSION="0.$TRAVIS_BUILD_NUMBER"
+
 go:
   - 1.14.x
 
@@ -17,13 +20,13 @@ services:
 
 script:
   - "make test"
-  - "VERSION=$TRAVIS_BUILD_NUMBER make image"
+  - "VERSION=$VERSION make image"
   - "make release"
 
 before_deploy:
   - git config --local user.name "pete911"
   - git config --local user.email "p.reisinger@gmail.com"
-  - git tag $TRAVIS_BUILD_NUMBER
+  - git tag $VERSION
 
 deploy:
   provider: releases
@@ -36,4 +39,4 @@ deploy:
 
 after_success:
   docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ;
-  VERSION=$TRAVIS_BUILD_NUMBER make push-image ;
+  VERSION=$VERSION make push-image ;
