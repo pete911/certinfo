@@ -10,11 +10,22 @@ version prints as well when using TCP address argument.
 **file** argument can be either **local file path** or **TCP network address**
 (`<host:port>` e.g. `google.com:443`)
 
- - info verbose `certinfo <file|host:port> [file|host:port] [...]`
- - info expiry `certinfo -expiry <file|host:port> [file|host:port] [...]`
+```shell script
+certinfo <file|host:port> [file|host:port] [...]
+```
+```
++------------------------------------------------------------------------------------+
+| optional flags                                                                     |
++-----------+------------------------------------------------------------------------+
+| -expiry   | print expiry of certificates                                           |
+| -insecure | whether a client verifies the server's certificate chain and host name |
+| -version  | certinfo version                                                       |
+| -help     | help                                                                   |
++-----------+------------------------------------------------------------------------+
+```
 
-Expiry flag can be set as env. variable as well (`CERTINFO_EXPIRY=true`) and can be then overridden with
-`-expiry=false` flag.
+Flags can be set as env. variable as well (`CERTINFO_<FLAG>=true` e.g. `CERTINFO_INSECURE=true`) and can be then
+overridden with a flag.
 
 ## download
 

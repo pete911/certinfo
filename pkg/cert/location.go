@@ -17,9 +17,9 @@ type Path struct {
 	Content []byte
 }
 
-func LoadCertificatesFromNetwork(addr string) (CertificateLocation, error) {
+func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLocation, error) {
 
-	conn, err := tls.Dial("tcp", addr, &tls.Config{})
+	conn, err := tls.Dial("tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("tcp connection failed: %w", err)
 	}

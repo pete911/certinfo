@@ -23,7 +23,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	certificatesFiles := LoadCertificatesLocations(flags.Args)
+	certificatesFiles := LoadCertificatesLocations(flags.Args, flags.Insecure)
 	if flags.Expiry {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
@@ -31,7 +31,7 @@ func main() {
 	PrintCertificatesLocations(certificatesFiles)
 }
 
-func LoadCertificatesLocations(args []string) []cert.CertificateLocation {
+func LoadCertificatesLocations(args []string, insecure bool) []cert.CertificateLocation {
 
 	var certificateLocations []cert.CertificateLocation
 	for _, arg := range args {
@@ -39,7 +39,7 @@ func LoadCertificatesLocations(args []string) []cert.CertificateLocation {
 		var certificateLocation cert.CertificateLocation
 		var err error
 		if isTCPNetworkAddress(arg) {
-			certificateLocation, err = cert.LoadCertificatesFromNetwork(arg)
+			certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, insecure)
 		} else {
 			certificateLocation, err = cert.LoadCertificatesFromFile(arg)
 		}
