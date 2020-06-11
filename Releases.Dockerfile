@@ -8,14 +8,14 @@ RUN go test ./...
 RUN mkdir /releases
 
 ARG version=dev
-RUN GOOS=linux go build -ldflags "-X main.Version=$version" -o /releases/certinfo
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Version=$version" -o /releases/certinfo
 RUN tar -czvf /releases/certinfo_linux.tar.gz -C /releases/ certinfo
 RUN rm /releases/certinfo
 
-RUN GOOS=darwin go build -ldflags "-X main.Version=$version" -o /releases/certinfo
+RUN CGO_ENABLED=0 GOOS=darwin go build -ldflags "-X main.Version=$version" -o /releases/certinfo
 RUN tar -czvf /releases/certinfo_darwin.tar.gz -C /releases/ certinfo
 RUN rm /releases/certinfo
 
-RUN GOOS=windows go build -ldflags "-X main.Version=$version" -o /releases/certinfo.exe
+RUN CGO_ENABLED=0 GOOS=windows go build -ldflags "-X main.Version=$version" -o /releases/certinfo.exe
 RUN tar -czvf /releases/certinfo_windows.tar.gz -C /releases/ certinfo.exe
 RUN rm /releases/certinfo.exe
