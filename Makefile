@@ -1,4 +1,5 @@
-IMAGE := pete911/certinfo
+NAME := certinfo
+IMAGE := pete911/${NAME}
 VERSION ?= dev
 
 test:
@@ -19,10 +20,8 @@ push-image:
 	docker push ${IMAGE}:latest
 
 release:
-	docker build --build-arg version=${VERSION} -t certinfo-releases -f Releases.Dockerfile .
-	docker create -ti --name certinfo-releases certinfo-releases sh
-	docker cp certinfo-releases:/releases/certinfo_linux.tar.gz releases/
-	docker cp certinfo-releases:/releases/certinfo_darwin.tar.gz releases/
-	docker cp certinfo-releases:/releases/certinfo_windows.tar.gz releases/
-	docker rm certinfo-releases
-	docker rmi certinfo-releases
+	for GOOS in "linux" "darwin" "windows"; do \
+		BUILD_CMD="GOOS=$$GOOS go build -ldflags \"-X main.Version=${VERSION}\" -o releases/${NAME}" ; \
+		TAR_CMD="tar -czvf releases/${NAME}_$$GOOS.tar.gz -C releases/ ${NAME} && rm releases/${NAME}" ; \
+		docker run --rm -it -v "${PWD}":/usr/src/app -w /usr/src/app -e CGO_ENABLED=0 golang:1.14-alpine sh -c "$$BUILD_CMD && $$TAR_CMD" ; \
+	done
