@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 type CertificateLocation struct {
@@ -35,10 +36,25 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLo
 
 func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
 
-	file, err := loadFromFile(fileName)
+	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return CertificateLocation{}, err
+		return CertificateLocation{}, fmt.Errorf("skipping %s file: %w", fileName, err)
 	}
+	file := Path{Name: fileName, Content: b}
+	return loadCertificate(file)
+}
+
+func LoadCertificateFromStdin() (CertificateLocation, error) {
+
+	content, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return CertificateLocation{}, fmt.Errorf("reading stdin: %w", err)
+	}
+	file := Path{Name: "stdin", Content: content}
+	return loadCertificate(file)
+}
+
+func loadCertificate(file Path) (CertificateLocation, error) {
 
 	if err := IsCertificatePEM(file.Content); err != nil {
 		return CertificateLocation{}, fmt.Errorf("file %s: %w", file.Name, err)
@@ -49,13 +65,4 @@ func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
 		return CertificateLocation{}, fmt.Errorf("file %s: %w", file.Name, err)
 	}
 	return CertificateLocation{Path: file, Certificates: certificates}, nil
-}
-
-func loadFromFile(fileName string) (Path, error) {
-
-	b, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return Path{}, fmt.Errorf("skipping %s file: %w", fileName, err)
-	}
-	return Path{Name: fileName, Content: b}, nil
 }

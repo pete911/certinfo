@@ -7,12 +7,15 @@ version prints as well when using TCP address argument.
 
 ## usage
 
-**file** argument can be either **local file path** or **TCP network address**
-(`<host:port>` e.g. `google.com:443`)
-
 ```shell script
 certinfo <file|host:port> [file|host:port] [...]
 ```
+
+**file** argument can be:
+ - **local file path** `certinfo <filename>`
+ - **TCP network address** `certinfo <host:port>` e.g. `certinfo google.com:443`
+ - **stdin** `echo "<cert-content>" | certinfo`
+
 ```
 +------------------------------------------------------------------------------------+
 | optional flags                                                                     |

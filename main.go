@@ -33,6 +33,17 @@ func main() {
 
 func LoadCertificatesLocations(args []string, insecure bool) []cert.CertificateLocation {
 
+	if isStdin() {
+		certificateLocation, err := cert.LoadCertificateFromStdin()
+		if err != nil {
+			fmt.Printf("--- [%s] ---\n", nameFormat("stdin", 0))
+			fmt.Println(err)
+			fmt.Println()
+			return nil
+		}
+		return []cert.CertificateLocation{certificateLocation}
+	}
+
 	var certificateLocations []cert.CertificateLocation
 	for _, arg := range args {
 
@@ -62,6 +73,20 @@ func isTCPNetworkAddress(arg string) bool {
 		return false
 	}
 	if _, err := strconv.Atoi(parts[1]); err != nil {
+		return false
+	}
+	return true
+}
+
+func isStdin() bool {
+
+	info, err := os.Stdin.Stat()
+	if err != nil {
+		fmt.Printf("checking stdin: %v\n", err)
+		return false
+	}
+
+	if info.Mode()&os.ModeCharDevice == os.ModeCharDevice || info.Size() <= 0 {
 		return false
 	}
 	return true
