@@ -23,7 +23,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	certificatesFiles := LoadCertificatesLocations(flags.Args, flags.Insecure)
+	certificatesFiles := LoadCertificatesLocations(flags)
 	if flags.Expiry {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
@@ -31,39 +31,48 @@ func main() {
 	PrintCertificatesLocations(certificatesFiles)
 }
 
-func LoadCertificatesLocations(args []string, insecure bool) []cert.CertificateLocation {
+func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
 
 	if isStdin() {
 		certificateLocation, err := cert.LoadCertificateFromStdin()
 		if err != nil {
-			fmt.Printf("--- [%s] ---\n", nameFormat("stdin", 0))
-			fmt.Println(err)
-			fmt.Println()
+			printCertFileError("stdin", err)
 			return nil
 		}
 		return []cert.CertificateLocation{certificateLocation}
 	}
 
+	// no stdin and not args
+	if len(flags.Args) == 0 {
+		flags.Usage()
+		os.Exit(0)
+	}
+
 	var certificateLocations []cert.CertificateLocation
-	for _, arg := range args {
+	for _, arg := range flags.Args {
 
 		var certificateLocation cert.CertificateLocation
 		var err error
 		if isTCPNetworkAddress(arg) {
-			certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, insecure)
+			certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, flags.Insecure)
 		} else {
 			certificateLocation, err = cert.LoadCertificatesFromFile(arg)
 		}
 
 		if err != nil {
-			fmt.Printf("--- [%s] ---\n", nameFormat(arg, 0))
-			fmt.Println(err)
-			fmt.Println()
+			printCertFileError(arg, err)
 			continue
 		}
 		certificateLocations = append(certificateLocations, certificateLocation)
 	}
 	return certificateLocations
+}
+
+func printCertFileError(fileName string, err error) {
+
+	fmt.Printf("--- [%s] ---\n", nameFormat(fileName, 0))
+	fmt.Println(err)
+	fmt.Println()
 }
 
 func isTCPNetworkAddress(arg string) bool {

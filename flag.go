@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 )
 
 type Flags struct {
+	Usage    func()
 	Expiry   bool
 	Insecure bool
 	Version  bool
@@ -23,11 +25,18 @@ func ParseFlags() (Flags, error) {
 	version := f.Bool("version", getBoolEnv("CERTINFO_VERSION", false),
 		"certinfo version")
 
+	f.Usage = func() {
+		fmt.Fprint(f.Output(), "Usage:\n")
+		fmt.Fprint(f.Output(), "certinfo [flags] <file|host:port> [file|host:port] [...]:\n")
+		f.PrintDefaults()
+	}
+
 	if err := f.Parse(os.Args[1:]); err != nil {
 		return Flags{}, err
 	}
 
 	return Flags{
+		Usage:    f.Usage,
 		Expiry:   boolValue(expiry),
 		Insecure: boolValue(insecure),
 		Version:  boolValue(version),
