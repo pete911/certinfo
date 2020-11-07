@@ -25,12 +25,12 @@ func PrintCertificatesExpiry(certificateLocations []cert.CertificateLocation) {
 		fmt.Printf("--- [%s] ---\n", nameFormat(certificateLocation.Path.Name, certificateLocation.TLSVersion))
 		for _, certificate := range certificateLocation.Certificates {
 
-			expiry := expiryFormat(certificate.NotAfter)
+			expiry := expiryFormat(certificate.X509Certificate.NotAfter)
 			if certificate.IsExpired() {
 				expiry = fmt.Sprintf("EXPIRED %s ago", expiry)
 			}
 
-			fmt.Printf("Subject: %s\n", certificate.Subject)
+			fmt.Printf("Subject: %s\n", certificate.X509Certificate.Subject)
 			fmt.Printf("Expiry: %s\n", expiry)
 			fmt.Println()
 		}

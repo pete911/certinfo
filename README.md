@@ -59,35 +59,44 @@ overridden with a flag.
 Version: 3
 Serial Number: 15424177460318123999
 Signature Algorithm: SHA256-RSA
-Issuer: O=GoDaddy.com, Inc. CN=Go Daddy Secure Certificate Authority - G2
+Issuer: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 Validity
     Not Before: Apr  8 05:28:12 2020 UTC
     Not After : Apr 17 02:03:38 2022 UTC
-Subject: CN=*.vault.com
+Subject: CN=*.vault.com,OU=Domain Control Validated
 DNS Names: *.vault.com, vault.com
 IP Addresses:
+Key Usage: Digital Signature, Key Encipherment
+Ext Key Usage: Server Auth, Client Auth
+CA: false
 
 Version: 3
 Serial Number: 7
 Signature Algorithm: SHA256-RSA
-Issuer: O=GoDaddy.com, Inc. CN=Go Daddy Root Certificate Authority - G2
+Issuer: CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 Validity
     Not Before: May  3 07:00:00 2011 UTC
     Not After : May  3 07:00:00 2031 UTC
-Subject: O=GoDaddy.com, Inc. CN=Go Daddy Secure Certificate Authority - G2
+Subject: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 DNS Names:
 IP Addresses:
+Key Usage: Cert Sign, CRL Sign
+Ext Key Usage:
+CA: true
 
 Version: 3
 Serial Number: 1828629
 Signature Algorithm: SHA256-RSA
-Issuer: O=The Go Daddy Group, Inc.
+Issuer: OU=Go Daddy Class 2 Certification Authority,O=The Go Daddy Group\, Inc.,C=US
 Validity
     Not Before: Jan  1 07:00:00 2014 UTC
     Not After : May 30 07:00:00 2031 UTC
-Subject: O=GoDaddy.com, Inc. CN=Go Daddy Root Certificate Authority - G2
+Subject: CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 DNS Names:
 IP Addresses:
+Key Usage: Cert Sign, CRL Sign
+Ext Key Usage:
+CA: true
 ```
 
 ### info/expiry
@@ -95,9 +104,9 @@ IP Addresses:
 `certinfo -expiry google.com:443`
 ```
 --- [google.com:443 TLS 1.3] ---
-Subject: O=Google LLC CN=*.google.com
-Expiry: 1 months 26 days 13 hours 14 minutes
+Subject: CN=*.google.com,O=Google LLC,L=Mountain View,ST=California,C=US
+Expiry: 2 months 5 days 6 hours 56 minutes
 
-Subject: O=Google Trust Services CN=GTS CA 1O1
-Expiry: 1 years 6 months 13 days 3 hours 52 minutes
+Subject: CN=GTS CA 1O1,O=Google Trust Services,C=US
+Expiry: 1 years 1 months 7 days 12 hours 54 minutes
 ```

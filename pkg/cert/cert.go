@@ -5,81 +5,54 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/big"
-	"net"
 	"strings"
 	"time"
 )
 
 const certificateType = "CERTIFICATE"
 
-// format for NotBefore and NotAfter fields to make output similar to openssl
-var validityFormat = "Jan _2 15:04:05 2006 MST"
-
 type Certificates []Certificate
 
 type Certificate struct {
-	Version            int
-	SerialNumber       *big.Int
-	SignatureAlgorithm string
-	Issuer             DN
-	NotBefore          time.Time
-	NotAfter           time.Time
-	Subject            DN
-	DNSNames           []string
-	IPAddresses        []net.IP
-	PEMCertificate     []byte
+	X509Certificate *x509.Certificate
 }
 
 func (c Certificate) IsExpired() bool {
-	return time.Now().After(c.NotAfter)
+	return time.Now().After(c.X509Certificate.NotAfter)
 }
 
 func (c Certificate) IsExpiredAt(t time.Time) bool {
-	return t.After(c.NotAfter)
+	return t.After(c.X509Certificate.NotAfter)
 }
 
 func (c Certificate) String() string {
 
-	dnsNames := strings.Join(c.DNSNames, ", ")
+	dnsNames := strings.Join(c.X509Certificate.DNSNames, ", ")
 
 	var ips []string
-	for _, ip := range c.IPAddresses {
+	for _, ip := range c.X509Certificate.IPAddresses {
 		ips = append(ips, fmt.Sprintf("%s", ip))
 	}
 	ipAddresses := strings.Join(ips, ", ")
 
+	keyUsage := KeyUsageToString(c.X509Certificate.KeyUsage)
+	extKeyUsage := ExtKeyUsageToString(c.X509Certificate.ExtKeyUsage)
+
 	return strings.Join([]string{
-		fmt.Sprintf("Version: %d", c.Version),
-		fmt.Sprintf("Serial Number: %d", c.SerialNumber),
-		fmt.Sprintf("Signature Algorithm: %s", c.SignatureAlgorithm),
-		fmt.Sprintf("Issuer: %s", c.Issuer),
-		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s", ValidityFormat(c.NotBefore), ValidityFormat(c.NotAfter)),
-		fmt.Sprintf("Subject: %s", c.Subject),
+		fmt.Sprintf("Version: %d", c.X509Certificate.Version),
+		fmt.Sprintf("Serial Number: %d", c.X509Certificate.SerialNumber),
+		fmt.Sprintf("Signature Algorithm: %s", c.X509Certificate.SignatureAlgorithm),
+		fmt.Sprintf("Issuer: %s", c.X509Certificate.Issuer),
+		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s",
+			ValidityFormat(c.X509Certificate.NotBefore),
+			ValidityFormat(c.X509Certificate.NotAfter)),
+		fmt.Sprintf("Subject: %s", c.X509Certificate.Subject),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
+		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
+		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
+		fmt.Sprintf("CA: %t", c.X509Certificate.IsCA),
 	}, "\n")
-}
-
-func ValidityFormat(t time.Time) string {
-	return t.Format(validityFormat)
-}
-
-type DN struct {
-	Organization []string
-	CommonName   string
-}
-
-func (dn DN) String() string {
-
-	var fields []string
-	if len(dn.Organization) != 0 {
-		fields = append(fields, fmt.Sprintf("O=%s", strings.Join(dn.Organization, ", ")))
-	}
-	if dn.CommonName != "" {
-		fields = append(fields, fmt.Sprintf("CN=%s", dn.CommonName))
-	}
-	return strings.Join(fields, " ")
 }
 
 // converts raw certificate bytes to certificate, if the supplied data is cert bundle (or chain)
@@ -97,27 +70,7 @@ func FromX509Certificates(cs []*x509.Certificate) Certificates {
 
 	var certificates Certificates
 	for _, c := range cs {
-		certificates = append(
-			certificates,
-			Certificate{
-				Version:            c.Version,
-				SerialNumber:       c.SerialNumber,
-				SignatureAlgorithm: c.SignatureAlgorithm.String(),
-				Issuer: DN{
-					Organization: c.Issuer.Organization,
-					CommonName:   c.Issuer.CommonName,
-				},
-				NotAfter:  c.NotAfter,
-				NotBefore: c.NotBefore,
-				Subject: DN{
-					Organization: c.Subject.Organization,
-					CommonName:   c.Subject.CommonName,
-				},
-				DNSNames:       c.DNSNames,
-				IPAddresses:    c.IPAddresses,
-				PEMCertificate: EncodeCertificatePEM(c),
-			},
-		)
+		certificates = append(certificates, Certificate{X509Certificate: c})
 	}
 	return certificates
 }
