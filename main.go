@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/pete911/certinfo/pkg/cert"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pete911/certinfo/pkg/cert"
 )
 
 var Version = "dev"
@@ -14,7 +15,7 @@ func main() {
 
 	flags, err := ParseFlags()
 	if err != nil {
-		fmt.Sprintf("cannot parse flags: %v", err)
+		fmt.Printf("cannot parse flags: %v", err)
 		os.Exit(1)
 	}
 
