@@ -59,6 +59,7 @@ overridden with a flag.
 Version: 3
 Serial Number: 15424177460318123999
 Signature Algorithm: SHA256-RSA
+Type: end-entity
 Issuer: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 Validity
     Not Before: Apr  8 05:28:12 2020 UTC
@@ -73,6 +74,7 @@ CA: false
 Version: 3
 Serial Number: 7
 Signature Algorithm: SHA256-RSA
+Type: intermediate
 Issuer: CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 Validity
     Not Before: May  3 07:00:00 2011 UTC
@@ -87,6 +89,7 @@ CA: true
 Version: 3
 Serial Number: 1828629
 Signature Algorithm: SHA256-RSA
+Type: intermediate
 Issuer: OU=Go Daddy Class 2 Certification Authority,O=The Go Daddy Group\, Inc.,C=US
 Validity
     Not Before: Jan  1 07:00:00 2014 UTC
