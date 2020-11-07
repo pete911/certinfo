@@ -26,8 +26,7 @@ func ParseFlags() (Flags, error) {
 		"certinfo version")
 
 	f.Usage = func() {
-		fmt.Fprint(f.Output(), "Usage:\n")
-		fmt.Fprint(f.Output(), "certinfo [flags] <file|host:port> [file|host:port] [...]:\n")
+		fmt.Fprint(f.Output(), "Usage: certinfo [flags] [<file>|<host:port> ...]\n")
 		f.PrintDefaults()
 	}
 
