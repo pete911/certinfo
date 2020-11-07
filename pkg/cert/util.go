@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/x509"
 	"time"
 )
@@ -41,6 +42,21 @@ var (
 
 func ValidityFormat(t time.Time) string {
 	return t.Format(validityFormat)
+}
+
+func CertificateType(cert *x509.Certificate) string {
+
+	if IsRoot(cert) {
+		return "root"
+	}
+	if cert.IsCA {
+		return "intermediate"
+	}
+	return "end-entity"
+}
+
+func IsRoot(cert *x509.Certificate) bool {
+	return bytes.Equal(cert.RawIssuer, cert.RawSubject) && cert.IsCA
 }
 
 // converts extended key usage integer values to strings
