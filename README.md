@@ -8,7 +8,7 @@ version prints as well when using TCP address argument.
 ## usage
 
 ```shell script
-certinfo <file|host:port> [file|host:port] [...]
+certinfo [flags] [<file>|<host:port> ...]
 ```
 
 **file** argument can be:
