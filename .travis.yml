@@ -4,7 +4,7 @@ env:
   - VERSION="0.$TRAVIS_BUILD_NUMBER"
 
 go:
-  - 1.15.x
+  - 1.16.x
 
 git:
   depth: false
