@@ -32,9 +32,10 @@ deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
   file:
-    - "releases/certinfo_linux.tar.gz"
-    - "releases/certinfo_darwin.tar.gz"
-    - "releases/certinfo_windows.tar.gz"
+    - "releases/certinfo_darwin_amd64.tar.gz"
+    - "releases/certinfo_darwin_arm64.tar.gz"
+    - "releases/certinfo_linux_amd64.tar.gz"
+    - "releases/certinfo_windows_amd64.tar.gz"
   skip_cleanup: true
 
 after_success:
