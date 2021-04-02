@@ -7,7 +7,7 @@ RUN go test ./...
 ARG version=dev
 RUN go build -ldflags "-X main.Version=$version" -o /bin/certinfo
 
-FROM alpine:3.13.3
+FROM alpine:3.13.4
 
 COPY --from=build /bin/certinfo /usr/local/bin/certinfo
 ENTRYPOINT ["certinfo"]
