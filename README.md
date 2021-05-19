@@ -113,3 +113,7 @@ Expiry: 2 months 5 days 6 hours 56 minutes
 Subject: CN=GTS CA 1O1,O=Google Trust Services,C=US
 Expiry: 1 years 1 months 7 days 12 hours 54 minutes
 ```
+
+### local root certs
+
+`ls -d /etc/ssl/certs/* | grep '.pem' | xargs certinfo -expiry`
