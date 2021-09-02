@@ -17,30 +17,26 @@ type Flags struct {
 
 func ParseFlags() (Flags, error) {
 
-	f := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-	expiry := f.Bool("expiry", getBoolEnv("CERTINFO_EXPIRY", false),
+	var flags Flags
+	flagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	flagSet.BoolVar(&flags.Expiry, "expiry", getBoolEnv("CERTINFO_EXPIRY", false),
 		"print expiry of certificates")
-	insecure := f.Bool("insecure", getBoolEnv("CERTINFO_INSECURE", false),
+	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
 		"whether a client verifies the server's certificate chain and host name")
-	version := f.Bool("version", getBoolEnv("CERTINFO_VERSION", false),
+	flagSet.BoolVar(&flags.Version, "version", getBoolEnv("CERTINFO_VERSION", false),
 		"certinfo version")
 
-	f.Usage = func() {
-		fmt.Fprint(f.Output(), "Usage: certinfo [flags] [<file>|<host:port> ...]\n")
-		f.PrintDefaults()
+	flagSet.Usage = func() {
+		fmt.Fprint(flagSet.Output(), "Usage: certinfo [flags] [<file>|<host:port> ...]\n")
+		flagSet.PrintDefaults()
 	}
+	flags.Usage = flagSet.Usage
 
-	if err := f.Parse(os.Args[1:]); err != nil {
+	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		return Flags{}, err
 	}
-
-	return Flags{
-		Usage:    f.Usage,
-		Expiry:   boolValue(expiry),
-		Insecure: boolValue(insecure),
-		Version:  boolValue(version),
-		Args:     f.Args(),
-	}, nil
+	flags.Args = flagSet.Args()
+	return flags, nil
 }
 
 func getBoolEnv(envName string, defaultValue bool) bool {
@@ -54,12 +50,4 @@ func getBoolEnv(envName string, defaultValue bool) bool {
 		return intValue
 	}
 	return defaultValue
-}
-
-func boolValue(v *bool) bool {
-
-	if v == nil {
-		return false
-	}
-	return *v
 }
