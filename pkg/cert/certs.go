@@ -11,7 +11,7 @@ const certificateBlockType = "CERTIFICATE"
 
 type Certificates []Certificate
 
-// converts raw certificate bytes to certificate, if the supplied data is cert bundle (or chain)
+// FromBytes converts raw certificate bytes to certificate, if the supplied data is cert bundle (or chain)
 // all the certificates will be returned
 func FromBytes(data []byte) (Certificates, error) {
 

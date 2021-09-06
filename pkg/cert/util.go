@@ -59,7 +59,7 @@ func IsRoot(cert *x509.Certificate) bool {
 	return bytes.Equal(cert.RawIssuer, cert.RawSubject) && cert.IsCA
 }
 
-// converts extended key usage integer values to strings
+// ExtKeyUsageToString converts extended key usage integer values to strings
 func ExtKeyUsageToString(extKeyUsage []x509.ExtKeyUsage) []string {
 
 	var extendedKeyUsageString []string
@@ -69,7 +69,7 @@ func ExtKeyUsageToString(extKeyUsage []x509.ExtKeyUsage) []string {
 	return extendedKeyUsageString
 }
 
-// converts key usage bit values to strings
+// KeyUsageToString converts key usage bit values to strings
 func KeyUsageToString(keyUsage x509.KeyUsage) []string {
 
 	var keyUsageString []string
