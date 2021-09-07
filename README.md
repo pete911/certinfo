@@ -17,14 +17,15 @@ certinfo [flags] [<file>|<host:port> ...]
  - **stdin** `echo "<cert-content>" | certinfo`
 
 ```
-+------------------------------------------------------------------------------------+
-| optional flags                                                                     |
-+-----------+------------------------------------------------------------------------+
-| -expiry   | print expiry of certificates                                           |
-| -insecure | whether a client verifies the server's certificate chain and host name |
-| -version  | certinfo version                                                       |
-| -help     | help                                                                   |
-+-----------+------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------------+
+| optional flags                                                                                                |
++-----------+---------------------------------------------------------------------------------------------------+
+| -chains   | whether to print verified chains as well (only applicable for host)                               |
+| -expiry   | print expiry of certificates                                                                      |
+| -insecure | whether a client verifies the server's certificate chain and host name (only applicable for host) |
+| -version  | certinfo version                                                                                  |
+| -help     | help                                                                                              |
++-----------+---------------------------------------------------------------------------------------------------+
 ```
 
 Flags can be set as env. variable as well (`CERTINFO_<FLAG>=true` e.g. `CERTINFO_INSECURE=true`) and can be then
@@ -116,4 +117,5 @@ Expiry: 1 years 1 months 7 days 12 hours 54 minutes
 
 ### local root certs
 
-`ls -d /etc/ssl/certs/* | grep '.pem' | xargs certinfo -expiry`
+- linux `ls -d /etc/ssl/certs/* | grep '.pem' | xargs certinfo -expiry`
+- mac `cat /etc/ssl/cert.pem | certinfo -expiry`

@@ -8,9 +8,10 @@ import (
 )
 
 type CertificateLocation struct {
-	TLSVersion   uint16 // only applicable for network certificates
-	Path         Path
-	Certificates Certificates
+	TLSVersion     uint16 // only applicable for network certificates
+	Path           Path
+	Certificates   Certificates
+	VerifiedChains []Certificates // only applicable for network certificates
 }
 
 type Path struct {
@@ -25,12 +26,19 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLo
 		return CertificateLocation{}, fmt.Errorf("tcp connection failed: %w", err)
 	}
 
-	x509Certificates := conn.ConnectionState().PeerCertificates
-	certificates := FromX509Certificates(x509Certificates)
+	connectionState := conn.ConnectionState()
+	x509Certificates := connectionState.PeerCertificates
+
+	var verifiedChains []Certificates
+	for _, chain := range connectionState.VerifiedChains {
+		verifiedChains = append(verifiedChains, FromX509Certificates(chain))
+	}
+
 	return CertificateLocation{
-		TLSVersion:   conn.ConnectionState().Version,
-		Path:         Path{Name: addr, Content: EncodeCertificatesPEM(x509Certificates)},
-		Certificates: certificates,
+		TLSVersion:     conn.ConnectionState().Version,
+		Path:           Path{Name: addr, Content: EncodeCertificatesPEM(x509Certificates)},
+		Certificates:   FromX509Certificates(x509Certificates),
+		VerifiedChains: verifiedChains,
 	}, nil
 }
 

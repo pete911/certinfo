@@ -8,14 +8,27 @@ import (
 	"time"
 )
 
-func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation) {
+func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation, printChains bool) {
 
 	for _, certificateLocation := range certificateLocations {
 		fmt.Printf("--- [%s] ---\n", nameFormat(certificateLocation.Path.Name, certificateLocation.TLSVersion))
-		for _, certificate := range certificateLocation.Certificates {
-			fmt.Println(certificate)
-			fmt.Println()
+		printCertificates(certificateLocation.Certificates)
+
+		if printChains {
+			fmt.Printf("--- %d verified chains ---\n", len(certificateLocation.VerifiedChains))
+			for i, chain := range certificateLocation.VerifiedChains {
+				fmt.Printf("--- chain %d ---\n", i+1)
+				printCertificates(chain)
+			}
 		}
+	}
+}
+
+func printCertificates(certificates cert.Certificates) {
+
+	for _, certificate := range certificates {
+		fmt.Println(certificate)
+		fmt.Println()
 	}
 }
 

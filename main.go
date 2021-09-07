@@ -29,7 +29,7 @@ func main() {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
 	}
-	PrintCertificatesLocations(certificatesFiles)
+	PrintCertificatesLocations(certificatesFiles, flags.Chains)
 }
 
 func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
