@@ -47,12 +47,6 @@ overridden with a flag.
  - build `make build`
  - install `make install`
 
-## docker
-
-[docker](https://www.docker.com/products/docker-desktop) has to be installed.
- - build `make image`
- - run `docker run -it --rm pete911/certinfo:dev <file|host:port>`
-
 ## release
 
 Releases are published when the new tag is created e.g.
