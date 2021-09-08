@@ -1,0 +1,35 @@
+builds:
+- id: "certinfo"
+  goos:
+  - linux
+  - darwin
+  - windows
+  goarch:
+  - amd64
+  - arm64
+checksum:
+  name_template: 'checksums.txt'
+dist: releases
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  github:
+    owner: pete911
+    name: certinfo
+brews:
+- tap:
+    owner: pete911
+    name: homebrew-tap
+  name: certinfo
+  homepage: "https://github.com/pete911/certinfo"
+  description: "Print x509 certificate info."
+  folder: Formula
+  install: |
+    bin.install "certinfo"
+  test: |
+    assert_match /Usage/, shell_output("#{bin}/certinfo -h", 0)
+

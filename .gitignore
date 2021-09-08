@@ -1,2 +1,4 @@
 /certinfo
-/releases/*.tar.gz
+/releases/*
+
+dist/
