@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.com/pete911/certinfo.svg?branch=master)](https://travis-ci.com/pete911/certinfo)
-
 # print x509 certificate info
 
 Similar to `openssl x509 -in <file> -text` command, but handles chains, multiple files and TCP addresses. TLS/SSL
