@@ -24,6 +24,7 @@ brews:
 - tap:
     owner: pete911
     name: homebrew-tap
+    token: "{{ .Env.GITHUB_TOKEN }}"
   name: certinfo
   homepage: "https://github.com/pete911/certinfo"
   description: "Print x509 certificate info."
