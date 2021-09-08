@@ -36,6 +36,11 @@ overridden with a flag.
 
 ## build/install
 
+## brew
+
+- add tap `brew tap pete911/tap`
+- install `brew install certinfo`
+
 ## go
 
 [go](https://golang.org/dl/) has to be installed.
@@ -47,6 +52,11 @@ overridden with a flag.
 [docker](https://www.docker.com/products/docker-desktop) has to be installed.
  - build `make image`
  - run `docker run -it --rm pete911/certinfo:dev <file|host:port>`
+
+## release
+
+Releases are published when the new tag is created e.g.
+`git tag -m "add super cool feature" 0.50 && git push --follow-tags`
 
 ## examples
 

@@ -1,12 +1,14 @@
 builds:
-- id: "certinfo"
+-
   goos:
-  - linux
-  - darwin
-  - windows
+    - linux
+    - darwin
+    - windows
   goarch:
-  - amd64
-  - arm64
+    - amd64
+    - arm64
+  ldflags:
+    - -X main.Version={{.Version}}
 checksum:
   name_template: 'checksums.txt'
 dist: releases
@@ -21,16 +23,15 @@ release:
     owner: pete911
     name: certinfo
 brews:
-- tap:
-    owner: pete911
-    name: homebrew-tap
-    token: "{{ .Env.GITHUB_TOKEN }}"
-  name: certinfo
-  homepage: "https://github.com/pete911/certinfo"
-  description: "Print x509 certificate info."
-  folder: Formula
-  install: |
-    bin.install "certinfo"
-  test: |
-    assert_match /Usage/, shell_output("#{bin}/certinfo -h", 0)
-
+  - tap:
+      owner: pete911
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    name: certinfo
+    homepage: "https://github.com/pete911/certinfo"
+    description: "Print x509 certificate info."
+    folder: Formula
+    install: |
+      bin.install "certinfo"
+    test: |
+      assert_match /Usage/, shell_output("#{bin}/certinfo -h", 0)
