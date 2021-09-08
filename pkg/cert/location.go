@@ -9,14 +9,9 @@ import (
 
 type CertificateLocation struct {
 	TLSVersion     uint16 // only applicable for network certificates
-	Path           Path
+	Path           string
 	Certificates   Certificates
 	VerifiedChains []Certificates // only applicable for network certificates
-}
-
-type Path struct {
-	Name    string
-	Content []byte
 }
 
 func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLocation, error) {
@@ -36,7 +31,7 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLo
 
 	return CertificateLocation{
 		TLSVersion:     conn.ConnectionState().Version,
-		Path:           Path{Name: addr, Content: EncodeCertificatesPEM(x509Certificates)},
+		Path:           addr,
 		Certificates:   FromX509Certificates(x509Certificates),
 		VerifiedChains: verifiedChains,
 	}, nil
@@ -48,8 +43,7 @@ func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("skipping %s file: %w", fileName, err)
 	}
-	file := Path{Name: fileName, Content: b}
-	return loadCertificate(file)
+	return loadCertificate(fileName, b)
 }
 
 func LoadCertificateFromStdin() (CertificateLocation, error) {
@@ -58,19 +52,22 @@ func LoadCertificateFromStdin() (CertificateLocation, error) {
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("reading stdin: %w", err)
 	}
-	file := Path{Name: "stdin", Content: content}
-	return loadCertificate(file)
+	return loadCertificate("stdin", content)
 }
 
-func loadCertificate(file Path) (CertificateLocation, error) {
+func loadCertificate(fileName string, data []byte) (CertificateLocation, error) {
 
-	if err := IsCertificatePEM(file.Content); err != nil {
-		return CertificateLocation{}, fmt.Errorf("file %s: %w", file.Name, err)
+	if err := IsCertificatePEM(data); err != nil {
+		return CertificateLocation{}, err
 	}
 
-	certificates, err := FromBytes(file.Content)
+	certificates, err := FromBytes(data)
 	if err != nil {
-		return CertificateLocation{}, fmt.Errorf("file %s: %w", file.Name, err)
+		return CertificateLocation{}, fmt.Errorf("file %s: %w", fileName, err)
 	}
-	return CertificateLocation{Path: file, Certificates: certificates}, nil
+
+	return CertificateLocation{
+		Path:         fileName,
+		Certificates: certificates,
+	}, nil
 }

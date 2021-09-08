@@ -65,21 +65,3 @@ func DecodeCertificatesPEM(data []byte) ([]*x509.Certificate, error) {
 	}
 	return x509.ParseCertificates(decodedCerts)
 }
-
-func EncodeCertificatesPEM(certificates []*x509.Certificate) []byte {
-
-	var out []byte
-	for _, certificate := range certificates {
-		b := EncodeCertificatePEM(certificate)
-		out = append(out, b...)
-	}
-	return out
-}
-
-func EncodeCertificatePEM(certificate *x509.Certificate) []byte {
-
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  certificateBlockType,
-		Bytes: certificate.Raw,
-	})
-}

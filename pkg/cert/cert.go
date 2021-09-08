@@ -2,6 +2,7 @@ package cert
 
 import (
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"strings"
 	"time"
@@ -19,6 +20,14 @@ func (c Certificate) IsExpired() bool {
 
 func (c Certificate) IsExpiredAt(t time.Time) bool {
 	return t.After(c.X509Certificate.NotAfter)
+}
+
+func (c Certificate) ToPEM() []byte {
+
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  certificateBlockType,
+		Bytes: c.X509Certificate.Raw,
+	})
 }
 
 func (c Certificate) String() string {

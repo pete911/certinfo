@@ -21,6 +21,8 @@ certinfo [flags] [<file>|<host:port> ...]
 | -chains   | whether to print verified chains as well (only applicable for host)                               |
 | -expiry   | print expiry of certificates                                                                      |
 | -insecure | whether a client verifies the server's certificate chain and host name (only applicable for host) |
+| -pem      | whether to print pem as well                                                                      |
+| -pem-only | whether to print only pem (useful for downloading certs from host)                                |
 | -version  | certinfo version                                                                                  |
 | -help     | help                                                                                              |
 +-----------+---------------------------------------------------------------------------------------------------+

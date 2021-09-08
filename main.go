@@ -15,7 +15,7 @@ func main() {
 
 	flags, err := ParseFlags()
 	if err != nil {
-		fmt.Printf("cannot parse flags: %v", err)
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
@@ -29,7 +29,11 @@ func main() {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
 	}
-	PrintCertificatesLocations(certificatesFiles, flags.Chains)
+	if flags.PemOnly {
+		PrintPemOnly(certificatesFiles, flags.Chains)
+		return
+	}
+	PrintCertificatesLocations(certificatesFiles, flags.Chains, flags.Pem)
 }
 
 func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
