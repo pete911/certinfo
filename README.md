@@ -34,7 +34,6 @@ overridden with a flag.
 ## download
 
  - [binary](https://github.com/pete911/certinfo/releases)
- - [docker](https://hub.docker.com/repository/docker/pete911/certinfo)
 
 ## build/install
 
