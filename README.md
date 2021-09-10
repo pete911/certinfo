@@ -51,7 +51,7 @@ overridden with a flag.
 ## release
 
 Releases are published when the new tag is created e.g.
-`git tag -m "add super cool feature" 0.50 && git push --follow-tags`
+`git tag -m "add super cool feature" v1.0.0 && git push --follow-tags`
 
 ## examples
 
