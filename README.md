@@ -37,12 +37,12 @@ overridden with a flag.
 
 ## build/install
 
-## brew
+### brew
 
 - add tap `brew tap pete911/tap`
 - install `brew install certinfo`
 
-## go
+### go
 
 [go](https://golang.org/dl/) has to be installed.
  - build `make build`
