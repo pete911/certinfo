@@ -1,5 +1,3 @@
-NAME := certinfo
-IMAGE := pete911/${NAME}
 VERSION ?= dev
 
 .DEFAULT_GOAL := build
