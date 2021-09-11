@@ -42,14 +42,14 @@ func PrintPemOnly(certificateLocations []cert.CertificateLocation, printChains b
 
 	for _, certificateLocation := range certificateLocations {
 		for _, certificate := range certificateLocation.Certificates {
-			fmt.Printf(string(certificate.ToPEM()))
+			fmt.Print(string(certificate.ToPEM()))
 		}
 
 		if printChains {
 			for _, chains := range certificateLocation.VerifiedChains {
 				fmt.Println()
 				for _, chain := range chains {
-					fmt.Printf(string(chain.ToPEM()))
+					fmt.Print(string(chain.ToPEM()))
 				}
 			}
 		}
