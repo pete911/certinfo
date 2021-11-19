@@ -100,7 +100,7 @@ func isStdin() bool {
 		return false
 	}
 
-	if info.Name() != "stdin" {
+	if info.Mode()&os.ModeCharDevice == os.ModeCharDevice || info.Size() <= 0 {
 		return false
 	}
 	return true
