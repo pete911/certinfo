@@ -38,6 +38,27 @@ func main() {
 
 func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
 
+	if len(flags.Args) > 0 {
+		var certificateLocations []cert.CertificateLocation
+		for _, arg := range flags.Args {
+
+			var certificateLocation cert.CertificateLocation
+			var err error
+			if isTCPNetworkAddress(arg) {
+				certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, flags.Insecure)
+			} else {
+				certificateLocation, err = cert.LoadCertificatesFromFile(arg)
+			}
+
+			if err != nil {
+				printCertFileError(arg, err)
+				continue
+			}
+			certificateLocations = append(certificateLocations, certificateLocation)
+		}
+		return certificateLocations
+	}
+
 	if isStdin() {
 		certificateLocation, err := cert.LoadCertificateFromStdin()
 		if err != nil {
@@ -48,29 +69,9 @@ func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
 	}
 
 	// no stdin and not args
-	if len(flags.Args) == 0 {
-		flags.Usage()
-		os.Exit(0)
-	}
-
-	var certificateLocations []cert.CertificateLocation
-	for _, arg := range flags.Args {
-
-		var certificateLocation cert.CertificateLocation
-		var err error
-		if isTCPNetworkAddress(arg) {
-			certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, flags.Insecure)
-		} else {
-			certificateLocation, err = cert.LoadCertificatesFromFile(arg)
-		}
-
-		if err != nil {
-			printCertFileError(arg, err)
-			continue
-		}
-		certificateLocations = append(certificateLocations, certificateLocation)
-	}
-	return certificateLocations
+	flags.Usage()
+	os.Exit(0)
+	return nil
 }
 
 func printCertFileError(fileName string, err error) {
@@ -100,8 +101,8 @@ func isStdin() bool {
 		return false
 	}
 
-	if info.Mode()&os.ModeCharDevice == os.ModeCharDevice || info.Size() <= 0 {
-		return false
+	if (info.Mode() & os.ModeCharDevice) == 0 {
+		return true
 	}
-	return true
+	return false
 }
