@@ -4,8 +4,12 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
+	"time"
 )
+
+const tlsDialTimeout = 5 * time.Second
 
 type CertificateLocation struct {
 	TLSVersion     uint16 // only applicable for network certificates
@@ -16,7 +20,7 @@ type CertificateLocation struct {
 
 func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLocation, error) {
 
-	conn, err := tls.Dial("tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
+	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("tcp connection failed: %w", err)
 	}
