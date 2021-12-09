@@ -61,10 +61,6 @@ func LoadCertificateFromStdin() (CertificateLocation, error) {
 
 func loadCertificate(fileName string, data []byte) (CertificateLocation, error) {
 
-	if err := IsCertificatePEM(data); err != nil {
-		return CertificateLocation{}, err
-	}
-
 	certificates, err := FromBytes(data)
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("file %s: %w", fileName, err)

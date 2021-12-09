@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 )
 
 const certificateBlockType = "CERTIFICATE"
@@ -33,18 +32,6 @@ func FromX509Certificates(cs []*x509.Certificate) Certificates {
 		certificates = append(certificates, certificate)
 	}
 	return certificates
-}
-
-func IsCertificatePEM(data []byte) error {
-
-	block, _ := pem.Decode(data)
-	if block != nil {
-		if block.Type == certificateBlockType {
-			return nil
-		}
-		return fmt.Errorf("%s type", block.Type)
-	}
-	return errors.New("certificate does not have any block/preamble specified")
 }
 
 func DecodeCertificatesPEM(data []byte) ([]*x509.Certificate, error) {
