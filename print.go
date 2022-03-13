@@ -98,7 +98,7 @@ func tlsFormat(tlsVersion uint16) string {
 	case tls.VersionTLS13:
 		return "TLS 1.3"
 	default:
-		return "TLS Version %d (unknown)"
+		return fmt.Sprintf("TLS Version %d (unknown)", tlsVersion)
 	}
 }
 
