@@ -1,7 +1,7 @@
 # github.com/davecgh/go-spew v1.1.0
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/icza/gox v0.0.0-20200525134802-370c390b446f
+# github.com/icza/gox v0.0.0-20220321141217-e2d488ab2fbc
 ## explicit; go 1.13
 github.com/icza/gox/timex
 # github.com/pmezard/go-difflib v1.0.0
@@ -11,6 +11,6 @@ github.com/pmezard/go-difflib/difflib
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+# gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
