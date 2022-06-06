@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/icza/gox v0.0.0-20220321141217-e2d488ab2fbc
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 )
 
 require (
