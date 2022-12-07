@@ -28,7 +28,7 @@ type Certificate struct {
 	// position of certificate in the chain, starts with 1
 	position        int
 	x509Certificate *x509.Certificate
-	err           error
+	err             error
 }
 
 func FromX509Certificates(cs []*x509.Certificate) Certificates {
