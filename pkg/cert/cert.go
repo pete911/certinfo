@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/icza/gox/timex"
 	"strings"
 	"time"
 )
@@ -25,16 +26,16 @@ func (c Certificates) RemoveExpired() Certificates {
 
 type Certificate struct {
 	// position of certificate in the chain, starts with 1
-	Position        int
-	X509Certificate *x509.Certificate
-	Error           error
+	position        int
+	x509Certificate *x509.Certificate
+	err           error
 }
 
 func FromX509Certificates(cs []*x509.Certificate) Certificates {
 
 	var certificates Certificates
 	for i, c := range cs {
-		certificates = append(certificates, Certificate{Position: i, X509Certificate: c})
+		certificates = append(certificates, Certificate{position: i, x509Certificate: c})
 	}
 	return certificates
 }
@@ -63,66 +64,104 @@ func FromBytes(data []byte) (Certificates, error) {
 func fromPemBlock(position int, block *pem.Block) Certificate {
 
 	if block.Type != certificateBlockType {
-		return Certificate{Position: position, Error: fmt.Errorf("cannot parse %s block", block.Type)}
+		return Certificate{position: position, err: fmt.Errorf("cannot parse %s block", block.Type)}
 	}
 	certificate, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return Certificate{Position: position, Error: err}
+		return Certificate{position: position, err: err}
 	}
-	return Certificate{Position: position, X509Certificate: certificate}
+	return Certificate{position: position, x509Certificate: certificate}
 }
 
 func (c Certificate) IsExpired() bool {
 
-	if c.Error != nil {
+	if c.err != nil {
 		return false
 	}
-	return time.Now().After(c.X509Certificate.NotAfter)
+	return time.Now().After(c.x509Certificate.NotAfter)
 }
 
 func (c Certificate) ToPEM() []byte {
 
-	if c.Error != nil {
+	if c.err != nil {
 		return nil
 	}
 
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  certificateBlockType,
-		Bytes: c.X509Certificate.Raw,
+		Bytes: c.x509Certificate.Raw,
 	})
+}
+
+func (c Certificate) SubjectString() string {
+
+	if c.err != nil {
+		return "-"
+	}
+	return c.x509Certificate.Subject.String()
+}
+
+func (c Certificate) ExpiryString() string {
+
+	if c.err != nil {
+		return "-"
+	}
+	expiry := expiryFormat(c.x509Certificate.NotAfter)
+	if c.IsExpired() {
+		return fmt.Sprintf("EXPIRED %s ago", expiry)
+	}
+	return expiry
 }
 
 func (c Certificate) String() string {
 
-	if c.Error != nil {
-		return fmt.Sprintf("ERROR: block at position %d: %v", c.Position, c.Error)
+	if c.err != nil {
+		return fmt.Sprintf("ERROR: block at position %d: %v", c.position, c.err)
 	}
 
-	dnsNames := strings.Join(c.X509Certificate.DNSNames, ", ")
+	dnsNames := strings.Join(c.x509Certificate.DNSNames, ", ")
 
 	var ips []string
-	for _, ip := range c.X509Certificate.IPAddresses {
+	for _, ip := range c.x509Certificate.IPAddresses {
 		ips = append(ips, fmt.Sprintf("%s", ip))
 	}
 	ipAddresses := strings.Join(ips, ", ")
 
-	keyUsage := KeyUsageToString(c.X509Certificate.KeyUsage)
-	extKeyUsage := ExtKeyUsageToString(c.X509Certificate.ExtKeyUsage)
+	keyUsage := KeyUsageToString(c.x509Certificate.KeyUsage)
+	extKeyUsage := ExtKeyUsageToString(c.x509Certificate.ExtKeyUsage)
 
 	return strings.Join([]string{
-		fmt.Sprintf("Version: %d", c.X509Certificate.Version),
-		fmt.Sprintf("Serial Number: %d", c.X509Certificate.SerialNumber),
-		fmt.Sprintf("Signature Algorithm: %s", c.X509Certificate.SignatureAlgorithm),
-		fmt.Sprintf("Type: %s", CertificateType(c.X509Certificate)),
-		fmt.Sprintf("Issuer: %s", c.X509Certificate.Issuer),
+		fmt.Sprintf("Version: %d", c.x509Certificate.Version),
+		fmt.Sprintf("Serial Number: %d", c.x509Certificate.SerialNumber),
+		fmt.Sprintf("Signature Algorithm: %s", c.x509Certificate.SignatureAlgorithm),
+		fmt.Sprintf("Type: %s", CertificateType(c.x509Certificate)),
+		fmt.Sprintf("Issuer: %s", c.x509Certificate.Issuer),
 		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s",
-			ValidityFormat(c.X509Certificate.NotBefore),
-			ValidityFormat(c.X509Certificate.NotAfter)),
-		fmt.Sprintf("Subject: %s", c.X509Certificate.Subject),
+			ValidityFormat(c.x509Certificate.NotBefore),
+			ValidityFormat(c.x509Certificate.NotAfter)),
+		fmt.Sprintf("Subject: %s", c.x509Certificate.Subject),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
 		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
 		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
-		fmt.Sprintf("CA: %t", c.X509Certificate.IsCA),
+		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
 	}, "\n")
+}
+
+func expiryFormat(t time.Time) string {
+
+	year, month, day, hour, minute, _ := timex.Diff(time.Now(), t)
+	if year != 0 {
+		return fmt.Sprintf("%d years %d months %d days %d hours %d minutes", year, month, day, hour, minute)
+	}
+	if month != 0 {
+		return fmt.Sprintf("%d months %d days %d hours %d minutes", month, day, hour, minute)
+	}
+	if day != 0 {
+		return fmt.Sprintf("%d days %d hours %d minutes", day, hour, minute)
+	}
+	if hour != 0 {
+		return fmt.Sprintf("%d hours %d minutes", hour, minute)
+	}
+	return fmt.Sprintf("%d minutes", minute)
 }

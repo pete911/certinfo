@@ -28,6 +28,10 @@ type CertificateLocation struct {
 	VerifiedChains []Certificates // only applicable for network certificates
 }
 
+func (c CertificateLocation) Name() string {
+	return nameFormat(c.Path, c.TLSVersion)
+}
+
 func (c CertificateLocation) RemoveExpired() CertificateLocation {
 	c.Certificates = c.Certificates.RemoveExpired()
 	return c
@@ -85,4 +89,32 @@ func loadCertificate(fileName string, data []byte) (CertificateLocation, error) 
 		Path:         fileName,
 		Certificates: certificates,
 	}, nil
+}
+
+func nameFormat(name string, tlsVersion uint16) string {
+
+	if tlsVersion == 0 {
+		return name
+	}
+	return fmt.Sprintf("%s %s", name, tlsFormat(tlsVersion))
+}
+
+func tlsFormat(tlsVersion uint16) string {
+
+	switch tlsVersion {
+	case 0:
+		return ""
+	case tls.VersionSSL30:
+		return "SSLv3 - Deprecated!"
+	case tls.VersionTLS10:
+		return "TLS 1.0 - Deprecated!"
+	case tls.VersionTLS11:
+		return "TLS 1.1 - Deprecated!"
+	case tls.VersionTLS12:
+		return "TLS 1.2"
+	case tls.VersionTLS13:
+		return "TLS 1.3"
+	default:
+		return fmt.Sprintf("TLS Version %d (unknown)", tlsVersion)
+	}
 }

@@ -79,7 +79,7 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 
 func printCertFileError(fileName string, err error) {
 
-	fmt.Printf("--- [%s] ---\n", nameFormat(fileName, 0))
+	fmt.Printf("--- [%s] ---\n", fileName)
 	fmt.Println(err)
 	fmt.Println()
 }
