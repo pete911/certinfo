@@ -1,6 +1,6 @@
 module github.com/pete911/certinfo
 
-go 1.18
+go 1.19
 
 require (
 	github.com/icza/gox v0.0.0-20220321141217-e2d488ab2fbc

@@ -3,6 +3,9 @@
 Similar to `openssl x509 -in <file> -text` command, but handles chains, multiple files and TCP addresses. TLS/SSL
 version prints as well when using TCP address argument.
 
+If one (or more) of the supplied certificates are malformed, the rest is still parsed and printed. There is additional
+log at the beginning of the output in this case, to show which block is malformed.
+
 ## usage
 
 ```shell script

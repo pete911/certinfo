@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"log"
 )
 
 const certificateBlockType = "CERTIFICATE"
@@ -14,7 +15,7 @@ type Certificates []Certificate
 // all the certificates will be returned
 func FromBytes(data []byte) (Certificates, error) {
 
-	cs, err := DecodeCertificatesPEM(data)
+	cs, err := ParseCertificatesPEM(data)
 	if err != nil {
 		return nil, err
 	}
@@ -34,21 +35,33 @@ func FromX509Certificates(cs []*x509.Certificate) Certificates {
 	return certificates
 }
 
-func DecodeCertificatesPEM(data []byte) ([]*x509.Certificate, error) {
+func ParseCertificatesPEM(data []byte) ([]*x509.Certificate, error) {
+
 	var block *pem.Block
-	var decodedCerts []byte
+	var certificates []*x509.Certificate
+	var i int
 	for {
+		i++
 		block, data = pem.Decode(data)
 		if block == nil {
-			return nil, errors.New("failed to parse certificate PEM")
+			return nil, errors.New("cannot find any PEM block")
 		}
+
 		// append only certificates
 		if block.Type == certificateBlockType {
-			decodedCerts = append(decodedCerts, block.Bytes...)
+			certificate, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				log.Printf("block %d cannot be parsed: %v", i, err)
+			} else {
+				certificates = append(certificates, certificate)
+			}
+		} else {
+			log.Printf("block %d is %s type, only %s can be parsed", i, block.Type, certificateBlockType)
 		}
+
 		if len(data) == 0 {
 			break
 		}
 	}
-	return x509.ParseCertificates(decodedCerts)
+	return certificates, nil
 }
