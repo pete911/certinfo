@@ -25,6 +25,9 @@ func main() {
 	}
 
 	certificatesFiles := LoadCertificatesLocations(flags)
+	if flags.NoExpired {
+		certificatesFiles = certificatesFiles.RemoveExpired()
+	}
 	if flags.Expiry {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
@@ -36,10 +39,10 @@ func main() {
 	PrintCertificatesLocations(certificatesFiles, flags.Chains, flags.Pem)
 }
 
-func LoadCertificatesLocations(flags Flags) []cert.CertificateLocation {
+func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 
 	if len(flags.Args) > 0 {
-		var certificateLocations []cert.CertificateLocation
+		var certificateLocations cert.CertificateLocations
 		for _, arg := range flags.Args {
 
 			var certificateLocation cert.CertificateLocation

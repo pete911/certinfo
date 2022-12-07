@@ -3,7 +3,7 @@ package cert
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"os"
 	"time"
@@ -11,11 +11,26 @@ import (
 
 const tlsDialTimeout = 5 * time.Second
 
+type CertificateLocations []CertificateLocation
+
+func (c CertificateLocations) RemoveExpired() CertificateLocations {
+	var out CertificateLocations
+	for i := range c {
+		out = append(out, c[i].RemoveExpired())
+	}
+	return out
+}
+
 type CertificateLocation struct {
 	TLSVersion     uint16 // only applicable for network certificates
 	Path           string
 	Certificates   Certificates
 	VerifiedChains []Certificates // only applicable for network certificates
+}
+
+func (c CertificateLocation) RemoveExpired() CertificateLocation {
+	c.Certificates = c.Certificates.RemoveExpired()
+	return c
 }
 
 func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLocation, error) {
@@ -43,7 +58,7 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLo
 
 func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
 
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("skipping %s file: %w", fileName, err)
 	}
@@ -52,7 +67,7 @@ func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
 
 func LoadCertificateFromStdin() (CertificateLocation, error) {
 
-	content, err := ioutil.ReadAll(os.Stdin)
+	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("reading stdin: %w", err)
 	}

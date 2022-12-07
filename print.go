@@ -27,7 +27,7 @@ func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation,
 	}
 }
 
-func printCertificates(certificates cert.Certificates, printPem bool) {
+func printCertificates(certificates []cert.Certificate, printPem bool) {
 
 	for _, certificate := range certificates {
 		fmt.Println(certificate)

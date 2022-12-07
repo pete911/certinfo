@@ -3,26 +3,88 @@ package cert
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
 
+const certificateBlockType = "CERTIFICATE"
+
+type Certificates []Certificate
+
+func (c Certificates) RemoveExpired() Certificates {
+	var out Certificates
+	for i := range c {
+		if !c[i].IsExpired() {
+			out = append(out, c[i])
+		}
+	}
+	return out
+}
+
 type Certificate struct {
-	// position of certificate in the chain, starts with 0
-	Index           int
+	// position of certificate in the chain, starts with 1
+	Position        int
 	X509Certificate *x509.Certificate
+	Error           error
+}
+
+func FromX509Certificates(cs []*x509.Certificate) Certificates {
+
+	var certificates Certificates
+	for i, c := range cs {
+		certificates = append(certificates, Certificate{Position: i, X509Certificate: c})
+	}
+	return certificates
+}
+
+// FromBytes converts raw certificate bytes to certificate, if the supplied data is cert bundle (or chain)
+// all the certificates will be returned
+func FromBytes(data []byte) (Certificates, error) {
+
+	var block *pem.Block
+	var certificates Certificates
+	var i int
+	for {
+		i++
+		block, data = pem.Decode(data)
+		if block == nil {
+			return nil, errors.New("cannot find any PEM block")
+		}
+		certificates = append(certificates, fromPemBlock(i, block))
+		if len(data) == 0 {
+			break
+		}
+	}
+	return certificates, nil
+}
+
+func fromPemBlock(position int, block *pem.Block) Certificate {
+
+	if block.Type != certificateBlockType {
+		return Certificate{Position: position, Error: fmt.Errorf("cannot parse %s block", block.Type)}
+	}
+	certificate, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return Certificate{Position: position, Error: err}
+	}
+	return Certificate{Position: position, X509Certificate: certificate}
 }
 
 func (c Certificate) IsExpired() bool {
+
+	if c.Error != nil {
+		return false
+	}
 	return time.Now().After(c.X509Certificate.NotAfter)
 }
 
-func (c Certificate) IsExpiredAt(t time.Time) bool {
-	return t.After(c.X509Certificate.NotAfter)
-}
-
 func (c Certificate) ToPEM() []byte {
+
+	if c.Error != nil {
+		return nil
+	}
 
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  certificateBlockType,
@@ -31,6 +93,10 @@ func (c Certificate) ToPEM() []byte {
 }
 
 func (c Certificate) String() string {
+
+	if c.Error != nil {
+		return fmt.Sprintf("ERROR: block at position %d: %v", c.Position, c.Error)
+	}
 
 	dnsNames := strings.Join(c.X509Certificate.DNSNames, ", ")
 

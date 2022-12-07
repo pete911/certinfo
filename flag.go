@@ -8,14 +8,15 @@ import (
 )
 
 type Flags struct {
-	Usage    func()
-	Expiry   bool
-	Insecure bool
-	Chains   bool
-	Pem      bool
-	PemOnly  bool
-	Version  bool
-	Args     []string
+	Usage     func()
+	Expiry    bool
+	NoExpired bool
+	Insecure  bool
+	Chains    bool
+	Pem       bool
+	PemOnly   bool
+	Version   bool
+	Args      []string
 }
 
 func ParseFlags() (Flags, error) {
@@ -24,6 +25,8 @@ func ParseFlags() (Flags, error) {
 	flagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	flagSet.BoolVar(&flags.Expiry, "expiry", getBoolEnv("CERTINFO_EXPIRY", false),
 		"print expiry of certificates")
+	flagSet.BoolVar(&flags.NoExpired, "no-expired", getBoolEnv("CERTINFO_NO_EXPIRED", false),
+		"do not print expired certificates")
 	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
 		"whether a client verifies the server's certificate chain and host name (only applicable for host)")
 	flagSet.BoolVar(&flags.Chains, "chains", getBoolEnv("CERTINFO_CHAINS", false),

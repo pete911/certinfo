@@ -3,9 +3,6 @@
 Similar to `openssl x509 -in <file> -text` command, but handles chains, multiple files and TCP addresses. TLS/SSL
 version prints as well when using TCP address argument.
 
-If one (or more) of the supplied certificates are malformed, the rest is still parsed and printed. There is additional
-log at the beginning of the output in this case, to show which block is malformed.
-
 ## usage
 
 ```shell script
@@ -18,17 +15,18 @@ certinfo [flags] [<file>|<host:port> ...]
  - **stdin** `echo "<cert-content>" | certinfo`
 
 ```
-+---------------------------------------------------------------------------------------------------------------+
-| optional flags                                                                                                |
-+-----------+---------------------------------------------------------------------------------------------------+
-| -chains   | whether to print verified chains as well (only applicable for host)                               |
-| -expiry   | print expiry of certificates                                                                      |
-| -insecure | whether a client verifies the server's certificate chain and host name (only applicable for host) |
-| -pem      | whether to print pem as well                                                                      |
-| -pem-only | whether to print only pem (useful for downloading certs from host)                                |
-| -version  | certinfo version                                                                                  |
-| -help     | help                                                                                              |
-+-----------+---------------------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------------------------+
+| optional flags                                                                                                  |
++-------------+---------------------------------------------------------------------------------------------------+
+| -chains     | whether to print verified chains as well (only applicable for host)                               |
+| -expiry     | print expiry of certificates                                                                      |
+| -insecure   | whether a client verifies the server's certificate chain and host name (only applicable for host) |
+| -no-expired | do not print expired certificates                                                                 |
+| -pem        | whether to print pem as well                                                                      |
+| -pem-only   | whether to print only pem (useful for downloading certs from host)                                |
+| -version    | certinfo version                                                                                  |
+| -help       | help                                                                                              |
++-----------+-----------------------------------------------------------------------------------------------------+
 ```
 
 Flags can be set as env. variable as well (`CERTINFO_<FLAG>=true` e.g. `CERTINFO_INSECURE=true`) and can be then
@@ -57,6 +55,13 @@ Releases are published when the new tag is created e.g.
 `git tag -m "add super cool feature" v1.0.0 && git push --follow-tags`
 
 ## examples
+
+### remove expired and malformed certs
+
+- `--pem-only` flag returns only pem blocks that can be parsed and are type of certificate
+- `--no-expired` flag removes expired certificates
+
+`certinfo --pem-only --no-expired <chain-file>.pem > <new-chain-file>.pem`
 
 ### info/verbose
 
