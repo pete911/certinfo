@@ -24,6 +24,19 @@ func (c Certificates) RemoveExpired() Certificates {
 	return out
 }
 
+func (c Certificates) RemoveDuplicates() Certificates {
+	var out Certificates
+	savedSet := map[string]struct{}{}
+	for i := range c {
+		stringPem := string(c[i].ToPEM())
+		if _, ok := savedSet[stringPem]; !ok {
+			savedSet[stringPem] = struct{}{}
+			out = append(out, c[i])
+		}
+	}
+	return out
+}
+
 type Certificate struct {
 	// position of certificate in the chain, starts with 1
 	position        int
@@ -96,7 +109,7 @@ func (c Certificate) ToPEM() []byte {
 func (c Certificate) SubjectString() string {
 
 	if c.err != nil {
-		return "-"
+		return fmt.Sprintf("ERROR: block at position %d: %v", c.position, c.err)
 	}
 	return c.x509Certificate.Subject.String()
 }

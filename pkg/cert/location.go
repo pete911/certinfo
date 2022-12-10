@@ -21,6 +21,14 @@ func (c CertificateLocations) RemoveExpired() CertificateLocations {
 	return out
 }
 
+func (c CertificateLocations) RemoveDuplicates() CertificateLocations {
+	var out CertificateLocations
+	for i := range c {
+		out = append(out, c[i].RemoveDuplicates())
+	}
+	return out
+}
+
 type CertificateLocation struct {
 	TLSVersion     uint16 // only applicable for network certificates
 	Path           string
@@ -34,6 +42,11 @@ func (c CertificateLocation) Name() string {
 
 func (c CertificateLocation) RemoveExpired() CertificateLocation {
 	c.Certificates = c.Certificates.RemoveExpired()
+	return c
+}
+
+func (c CertificateLocation) RemoveDuplicates() CertificateLocation {
+	c.Certificates = c.Certificates.RemoveDuplicates()
 	return c
 }
 

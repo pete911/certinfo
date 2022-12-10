@@ -28,6 +28,9 @@ func main() {
 	if flags.NoExpired {
 		certificatesFiles = certificatesFiles.RemoveExpired()
 	}
+	if flags.NoDuplicate {
+		certificatesFiles = certificatesFiles.RemoveDuplicates()
+	}
 	if flags.Expiry {
 		PrintCertificatesExpiry(certificatesFiles)
 		return

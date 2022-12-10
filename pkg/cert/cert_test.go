@@ -1,10 +1,46 @@
 package cert
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
+
+func TestFromBytes(t *testing.T) {
+	t.Run("given valid PEM certificate, then certificate is loaded", func(t *testing.T) {
+		certificates := loadTestCertificates(t, "cert.pem")
+		require.Equal(t, 1, len(certificates))
+		assert.Equal(t, 1, certificates[0].position)
+		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", certificates[0].SubjectString())
+		assert.Nil(t, certificates[0].err)
+	})
+
+	t.Run("given valid PEM bundle, then all certificates are loaded", func(t *testing.T) {
+		certificates := loadTestCertificates(t, "bundle.pem")
+		require.Equal(t, 2, len(certificates))
+		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", certificates[0].SubjectString())
+		assert.Equal(t, "CN=GTS Root R1,O=Google Trust Services LLC,C=US", certificates[1].SubjectString())
+	})
+}
+
+func TestCertificates_RemoveDuplicates(t *testing.T) {
+	t.Run("given duplicate PEM certificate, when remove duplicates is called, then they are removed", func(t *testing.T) {
+		bundle := bytes.Join([][]byte{
+			loadTestFile(t, "bundle.pem"),
+			loadTestFile(t, "bundle.pem"),
+		}, []byte("\n"))
+		certificates, err := FromBytes(bundle)
+		require.NoError(t, err)
+
+		require.Equal(t, 4, len(certificates))
+		noDuplicates := certificates.RemoveDuplicates()
+		require.Equal(t, 2, len(noDuplicates))
+	})
+}
 
 func Test_expiryFormat(t *testing.T) {
 	t.Run("given certificate expiry is more than a year then year is returned as well", func(t *testing.T) {
@@ -34,6 +70,18 @@ func Test_expiryFormat(t *testing.T) {
 }
 
 // --- helper functions ---
+
+func loadTestCertificates(t *testing.T, file string) Certificates {
+	certificates, err := FromBytes(loadTestFile(t, file))
+	require.NoError(t, err)
+	return certificates
+}
+
+func loadTestFile(t *testing.T, file string) []byte {
+	b, err := os.ReadFile(filepath.Join("testdata", file))
+	require.NoError(t, err)
+	return b
+}
 
 func getTime(years, months, days, hours, minutes int) time.Time {
 	return time.Now().AddDate(years, months, days).

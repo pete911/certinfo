@@ -15,18 +15,19 @@ certinfo [flags] [<file>|<host:port> ...]
  - **stdin** `echo "<cert-content>" | certinfo`
 
 ```
-+-----------------------------------------------------------------------------------------------------------------+
-| optional flags                                                                                                  |
-+-------------+---------------------------------------------------------------------------------------------------+
-| -chains     | whether to print verified chains as well (only applicable for host)                               |
-| -expiry     | print expiry of certificates                                                                      |
-| -insecure   | whether a client verifies the server's certificate chain and host name (only applicable for host) |
-| -no-expired | do not print expired certificates                                                                 |
-| -pem        | whether to print pem as well                                                                      |
-| -pem-only   | whether to print only pem (useful for downloading certs from host)                                |
-| -version    | certinfo version                                                                                  |
-| -help       | help                                                                                              |
-+-----------+-----------------------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------------------+
+| optional flags                                                                                                    |
++---------------+---------------------------------------------------------------------------------------------------+
+| -chains       | whether to print verified chains as well (only applicable for host)                               |
+| -expiry       | print expiry of certificates                                                                      |
+| -insecure     | whether a client verifies the server's certificate chain and host name (only applicable for host) |
+| -no-duplicate | do not print duplicate certificates                                                               |
+| -no-expired   | do not print expired certificates                                                                 |
+| -pem          | whether to print pem as well                                                                      |
+| -pem-only     | whether to print only pem (useful for downloading certs from host)                                |
+| -version      | certinfo version                                                                                  |
+| -help         | help                                                                                              |
++---------------+---------------------------------------------------------------------------------------------------+
 ```
 
 Flags can be set as env. variable as well (`CERTINFO_<FLAG>=true` e.g. `CERTINFO_INSECURE=true`) and can be then
