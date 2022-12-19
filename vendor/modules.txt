@@ -1,7 +1,7 @@
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/icza/gox v0.0.0-20220321141217-e2d488ab2fbc
+# github.com/icza/gox v0.0.0-20221026131554-a08a8cdc726a
 ## explicit; go 1.13
 github.com/icza/gox/timex
 # github.com/pmezard/go-difflib v1.0.0
