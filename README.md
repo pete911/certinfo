@@ -1,5 +1,7 @@
 # print x509 certificate info
 
+[![pipeline](https://github.com/pete911/certinfo/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pete911/certinfo/actions/workflows/pipeline.yml)
+
 Similar to `openssl x509 -in <file> -text` command, but handles chains, multiple files and TCP addresses. TLS/SSL
 version prints as well when using TCP address argument.
 
