@@ -2,6 +2,8 @@ package cert
 
 import (
 	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -111,7 +113,11 @@ func (c Certificate) SubjectString() string {
 	if c.err != nil {
 		return fmt.Sprintf("ERROR: block at position %d: %v", c.position, c.err)
 	}
-	return c.x509Certificate.Subject.String()
+	var subject pkix.RDNSequence
+	if _, err := asn1.Unmarshal(c.x509Certificate.RawSubject, &subject); err != nil {
+		return fmt.Sprintf("ERROR: asn1 unmarshal subject: %v", err)
+	}
+	return subject.String()
 }
 
 func (c Certificate) ExpiryString() string {
@@ -152,7 +158,7 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s",
 			ValidityFormat(c.x509Certificate.NotBefore),
 			ValidityFormat(c.x509Certificate.NotAfter)),
-		fmt.Sprintf("Subject: %s", c.x509Certificate.Subject),
+		fmt.Sprintf("Subject: %s", c.SubjectString()),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
 		fmt.Sprintf("Authority Key Id: %x", c.x509Certificate.AuthorityKeyId),
