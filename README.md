@@ -72,16 +72,18 @@ Releases are published when the new tag is created e.g.
 ```
 --- [vault.com:443 TLS 1.2] ---
 Version: 3
-Serial Number: 15424177460318123999
+Serial Number: 16280914906313700456
 Signature Algorithm: SHA256-RSA
 Type: end-entity
 Issuer: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 Validity
-    Not Before: Apr  8 05:28:12 2020 UTC
-    Not After : Apr 17 02:03:38 2022 UTC
-Subject: CN=*.vault.com,OU=Domain Control Validated
+    Not Before: Mar 24 10:44:12 2022 UTC
+    Not After : Mar 19 13:04:10 2023 UTC
+Subject: CN=*.vault.com
 DNS Names: *.vault.com, vault.com
 IP Addresses:
+Authority Key Id: 40c2bd278ecc348330a233d7fb6cb3f0b42c80ce
+Subject Key Id  : 6b8c8d1da18cbb8cd64437ed0a9c8a0fef673821
 Key Usage: Digital Signature, Key Encipherment
 Ext Key Usage: Server Auth, Client Auth
 CA: false
@@ -97,6 +99,8 @@ Validity
 Subject: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 DNS Names:
 IP Addresses:
+Authority Key Id: 3a9a8507106728b6eff6bd05416e20c194da0fde
+Subject Key Id  : 40c2bd278ecc348330a233d7fb6cb3f0b42c80ce
 Key Usage: Cert Sign, CRL Sign
 Ext Key Usage:
 CA: true
@@ -112,9 +116,13 @@ Validity
 Subject: CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scottsdale,ST=Arizona,C=US
 DNS Names:
 IP Addresses:
+Authority Key Id: d2c4b0d291d44c1171b361cb3da1fedda86ad4e3
+Subject Key Id  : 3a9a8507106728b6eff6bd05416e20c194da0fde
 Key Usage: Cert Sign, CRL Sign
 Ext Key Usage:
 CA: true
+
+--- 1 verified chains ---
 ```
 
 ### info/expiry
@@ -122,11 +130,14 @@ CA: true
 `certinfo -expiry google.com:443`
 ```
 --- [google.com:443 TLS 1.3] ---
-Subject: CN=*.google.com,O=Google LLC,L=Mountain View,ST=California,C=US
-Expiry: 2 months 5 days 6 hours 56 minutes
+Subject: CN=*.google.com
+Expiry: 2 months 4 days 14 hours 41 minutes
 
-Subject: CN=GTS CA 1O1,O=Google Trust Services,C=US
-Expiry: 1 years 1 months 7 days 12 hours 54 minutes
+Subject: CN=GTS CA 1C3,O=Google Trust Services LLC,C=US
+Expiry: 4 years 6 months 19 days 5 hours 29 minutes
+
+Subject: CN=GTS Root R1,O=Google Trust Services LLC,C=US
+Expiry: 4 years 10 months 17 days 4 hours 29 minutes
 ```
 
 ### local root certs

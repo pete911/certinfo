@@ -155,6 +155,8 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Subject: %s", c.x509Certificate.Subject),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
+		fmt.Sprintf("Authority Key Id: %x", c.x509Certificate.AuthorityKeyId),
+		fmt.Sprintf("Subject Key Id  : %x", c.x509Certificate.SubjectKeyId),
 		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
 		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
 		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
