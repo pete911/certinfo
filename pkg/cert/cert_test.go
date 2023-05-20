@@ -69,6 +69,26 @@ func Test_expiryFormat(t *testing.T) {
 	})
 }
 
+func Test_rootIdentification(t *testing.T) {
+	t.Run("given certificate issuer is identical to subject but authority key id is set then identify as root", func(t *testing.T) {
+		certificate, err := FromBytes(loadTestFile(t, "root_with_authority_key_id.pem"))
+		require.NoError(t, err)
+		require.Len(t, certificate, 1)
+		require.Equal(t, certificate[0].x509Certificate.RawSubject, certificate[0].x509Certificate.RawIssuer)
+		require.NotEmpty(t, certificate[0].x509Certificate.AuthorityKeyId)
+		require.Equal(t, "root", CertificateType(certificate[0].x509Certificate))
+	})
+
+	t.Run("given certificate authority key id is unset then identify as root", func(t *testing.T) {
+		certificate, err := FromBytes(loadTestFile(t, "cert.pem"))
+		require.NoError(t, err)
+		require.Len(t, certificate, 1)
+		assert.Len(t, certificate[0].x509Certificate.AuthorityKeyId, 0)
+		assert.True(t, certificate[0].x509Certificate.IsCA)
+		require.Equal(t, "root", CertificateType(certificate[0].x509Certificate))
+	})
+}
+
 // --- helper functions ---
 
 func loadTestCertificates(t *testing.T, file string) Certificates {
