@@ -3,7 +3,7 @@ module github.com/pete911/certinfo
 go 1.20
 
 require (
-	github.com/icza/gox v0.0.0-20230117093757-93f961aa2755
+	github.com/icza/gox v0.0.0-20230330130131-23e1aaac139e
 	github.com/stretchr/testify v1.8.3
 )
 
