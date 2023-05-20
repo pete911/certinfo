@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/x509"
 	"time"
 )
@@ -45,9 +46,10 @@ func ValidityFormat(t time.Time) string {
 
 func CertificateType(cert *x509.Certificate) string {
 
-	if cert.AuthorityKeyId == nil {
+	if bytes.Equal(cert.RawSubject, cert.RawIssuer) || cert.AuthorityKeyId == nil {
 		return "root"
 	}
+
 	if cert.IsCA {
 		return "intermediate"
 	}
