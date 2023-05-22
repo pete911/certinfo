@@ -89,6 +89,17 @@ func Test_rootIdentification(t *testing.T) {
 	})
 }
 
+func Test_intermediateIdentification(t *testing.T) {
+	t.Run("given intermediate certificate issuer is identical to subject but authority and subject keys are different then identify as intermediate", func(t *testing.T) {
+		certificate, err := FromBytes(loadTestFile(t, "intermediate_same_issuer_and_subject.pem"))
+		require.NoError(t, err)
+		require.Len(t, certificate, 1)
+		require.Equal(t, certificate[0].x509Certificate.RawSubject, certificate[0].x509Certificate.RawIssuer)
+		require.NotEmpty(t, certificate[0].x509Certificate.AuthorityKeyId)
+		require.Equal(t, "intermediate", CertificateType(certificate[0].x509Certificate))
+	})
+}
+
 // --- helper functions ---
 
 func loadTestCertificates(t *testing.T, file string) Certificates {
