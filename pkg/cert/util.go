@@ -46,7 +46,7 @@ func ValidityFormat(t time.Time) string {
 
 func CertificateType(cert *x509.Certificate) string {
 
-	if bytes.Equal(cert.RawSubject, cert.RawIssuer) || cert.AuthorityKeyId == nil {
+	if cert.AuthorityKeyId == nil || bytes.Equal(cert.AuthorityKeyId, cert.SubjectKeyId) {
 		return "root"
 	}
 
