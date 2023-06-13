@@ -3,7 +3,9 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"golang.design/x/clipboard"
 	"io"
 	"net"
 	"os"
@@ -90,6 +92,20 @@ func LoadCertificateFromStdin() (CertificateLocation, error) {
 		return CertificateLocation{}, fmt.Errorf("reading stdin: %w", err)
 	}
 	return loadCertificate("stdin", content)
+}
+
+func LoadCertificateFromClipboard() (CertificateLocation, error) {
+
+	if err := clipboard.Init(); err != nil {
+		return CertificateLocation{}, fmt.Errorf("unable to load from clipboard: %w", err)
+	}
+
+	content := clipboard.Read(clipboard.FmtText)
+	if content == nil {
+		return CertificateLocation{}, errors.New("clipboard is empty")
+	}
+
+	return loadCertificate("clipboard", content)
 }
 
 func loadCertificate(fileName string, data []byte) (CertificateLocation, error) {

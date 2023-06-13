@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseFlags(t *testing.T) {
@@ -23,6 +24,7 @@ func TestParseFlags(t *testing.T) {
 		assert.False(t, flags.PemOnly)
 		assert.False(t, flags.Version)
 		assert.Empty(t, flags.Args)
+		assert.False(t, flags.Clipboard)
 	})
 
 	t.Run("given args are set and env vars empty then flags are set to provided args", func(t *testing.T) {
@@ -47,6 +49,37 @@ func TestParseFlags(t *testing.T) {
 		assert.True(t, flags.PemOnly)
 		assert.True(t, flags.Version)
 		assert.Empty(t, flags.Args)
+	})
+
+	t.Run("given clipboard supported and args are set and env vars empty then flags are set to provided args", func(t *testing.T) {
+
+		if !isClipboardSupported() {
+			t.Skip("clipboard not supported in this environment")
+		}
+
+		setInput(t, []string{"flag",
+			"-expiry=true",
+			"-insecure=true",
+			"-chains=true",
+			"-chains=true",
+			"-pem=true",
+			"-pem-only=true",
+			"-version=true",
+			"-clipboard=true",
+		}, nil)
+
+		flags, err := ParseFlags()
+		require.NoError(t, err)
+
+		assert.True(t, flags.Expiry)
+		assert.True(t, flags.Insecure)
+		assert.True(t, flags.Chains)
+		assert.True(t, flags.Pem)
+		assert.True(t, flags.PemOnly)
+		assert.True(t, flags.Version)
+		assert.True(t, flags.Version)
+		assert.Empty(t, flags.Args)
+		assert.True(t, flags.Clipboard)
 	})
 
 	t.Run("given args are not set and env vars are set then flags are set to provided env vars", func(t *testing.T) {

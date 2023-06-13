@@ -6,7 +6,14 @@ permissions:
   contents: write
 
 jobs:
+  prereqs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install libx11-dev
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev
   go:
+    needs:
+      - prereqs
     uses: pete911/github-actions/.github/workflows/go.yml@main
   go-release:
     needs:
