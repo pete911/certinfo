@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -93,7 +94,7 @@ func LoadCertificateFromStdin() (CertificateLocation, error) {
 
 func loadCertificate(fileName string, data []byte) (CertificateLocation, error) {
 
-	certificates, err := FromBytes(data)
+	certificates, err := FromBytes(bytes.TrimSpace(data))
 	if err != nil {
 		return CertificateLocation{}, fmt.Errorf("file %s: %w", fileName, err)
 	}
