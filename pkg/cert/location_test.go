@@ -32,9 +32,9 @@ func Test_loadCertificate(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("given certificate with extra new lines then cert location is loaded", func(t *testing.T) {
+	t.Run("given certificate with extra spaces then cert location is loaded", func(t *testing.T) {
 		certificate := loadTestFile(t, "cert.pem")
-		certificate = bytes.Join([][]byte{[]byte("\n\n"), certificate}, []byte("/"))
+		certificate = bytes.Join([][]byte{[]byte("   "), certificate}, []byte(""))
 		_, err := loadCertificate("test", certificate)
 		require.NoError(t, err)
 	})
