@@ -12,11 +12,6 @@ builds:
 checksum:
   name_template: 'checksums.txt'
 dist: releases
-archives:
-  - replacements:
-    format_overrides:
-    - goos: windows
-      format: zip
 changelog:
   sort: asc
   filters:
