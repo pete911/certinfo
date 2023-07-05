@@ -3,9 +3,11 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+	"golang.design/x/clipboard"
 )
 
 func Test_nameFormat(t *testing.T) {
@@ -36,6 +38,20 @@ func Test_loadCertificate(t *testing.T) {
 		certificate := loadTestFile(t, "cert.pem")
 		certificate = bytes.Join([][]byte{[]byte("   "), certificate}, []byte(""))
 		_, err := loadCertificate("test", certificate)
+		require.NoError(t, err)
+	})
+}
+
+func Test_loadCertificateFromClipboard(t *testing.T) {
+	if err := clipboard.Init(); err != nil {
+		t.Skip("clipboard not supported in this environment")
+	}
+
+	t.Run("given valid certificate in clipboard then cert is loaded", func(t *testing.T) {
+		certificate := loadTestFile(t, "cert.pem")
+		clipboard.Write(clipboard.FmtText, certificate)
+
+		_, err := LoadCertificateFromClipboard()
 		require.NoError(t, err)
 	})
 }

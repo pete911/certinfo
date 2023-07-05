@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/pete911/certinfo/pkg/cert"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/pete911/certinfo/pkg/cert"
 )
 
 var Version = "dev"
@@ -43,6 +42,15 @@ func main() {
 }
 
 func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
+
+	if flags.Clipboard {
+		certificateLocation, err := cert.LoadCertificateFromClipboard()
+		if err != nil {
+			printCertFileError("clipboard", err)
+			return nil
+		}
+		return []cert.CertificateLocation{certificateLocation}
+	}
 
 	if len(flags.Args) > 0 {
 		var certificateLocations cert.CertificateLocations
