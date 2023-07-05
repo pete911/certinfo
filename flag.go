@@ -74,6 +74,11 @@ func getBoolEnv(envName string, defaultValue bool) bool {
 	return defaultValue
 }
 
-func isClipboardSupported() bool {
+func isClipboardSupported() (ok bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			ok = false
+		}
+	}()
 	return clipboard.Init() == nil
 }
