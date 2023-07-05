@@ -75,10 +75,5 @@ func getBoolEnv(envName string, defaultValue bool) bool {
 }
 
 func isClipboardSupported() bool {
-
-	if err := clipboard.Init(); err == nil {
-		return true
-	}
-
-	return false
+	return clipboard.Init() == nil
 }

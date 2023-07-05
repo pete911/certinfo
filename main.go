@@ -43,17 +43,17 @@ func main() {
 
 func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 
+	var certificateLocations cert.CertificateLocations
 	if flags.Clipboard {
 		certificateLocation, err := cert.LoadCertificateFromClipboard()
 		if err != nil {
 			printCertFileError("clipboard", err)
 			return nil
 		}
-		return []cert.CertificateLocation{certificateLocation}
+		certificateLocations = append(certificateLocations, certificateLocation)
 	}
 
 	if len(flags.Args) > 0 {
-		var certificateLocations cert.CertificateLocations
 		for _, arg := range flags.Args {
 
 			var certificateLocation cert.CertificateLocation
@@ -70,7 +70,6 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 			}
 			certificateLocations = append(certificateLocations, certificateLocation)
 		}
-		return certificateLocations
 	}
 
 	if isStdin() {
@@ -79,10 +78,14 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 			printCertFileError("stdin", err)
 			return nil
 		}
-		return []cert.CertificateLocation{certificateLocation}
+		certificateLocations = append(certificateLocations, certificateLocation)
 	}
 
-	// no stdin and not args
+	if len(certificateLocations) > 0 {
+		return certificateLocations
+	}
+
+	// no stdin and no args
 	flags.Usage()
 	os.Exit(0)
 	return nil
