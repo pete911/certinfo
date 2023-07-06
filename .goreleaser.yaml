@@ -1,17 +1,25 @@
 builds:
--
-  goos:
-    - linux
-    - darwin
-    - windows
-  goarch:
-    - amd64
-    - arm64
-  ldflags:
-    - -X main.Version={{.Version}}
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X main.Version={{.Version}}
+
+archives:
+  - format: tar.gz
+    format_overrides:
+    - goos: windows
+      format: zip
 checksum:
   name_template: 'checksums.txt'
-dist: releases
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
@@ -23,7 +31,7 @@ release:
     owner: pete911
     name: certinfo
 brews:
-  - tap:
+  - repository:
       owner: pete911
       name: homebrew-tap
       token: "{{ .Env.GITHUB_TOKEN }}"
