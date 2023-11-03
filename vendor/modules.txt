@@ -24,7 +24,7 @@ golang.org/x/exp/shiny/driver/internal/lifecycler
 golang.org/x/exp/shiny/driver/internal/win32
 golang.org/x/exp/shiny/driver/internal/x11key
 golang.org/x/exp/shiny/screen
-# golang.org/x/image v0.6.0
+# golang.org/x/image v0.10.0
 ## explicit; go 1.12
 golang.org/x/image/bmp
 golang.org/x/image/math/f64
