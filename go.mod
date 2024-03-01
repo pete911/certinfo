@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/icza/gox v0.0.0-20230924165045-adcb03233bb5
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	golang.design/x/clipboard v0.7.0
 )
 
