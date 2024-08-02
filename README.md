@@ -28,6 +28,7 @@ certinfo [flags] [<file>|<host:port> ...]
 | -no-expired   | do not print expired certificates                                                                 |
 | -pem          | whether to print pem as well                                                                      |
 | -pem-only     | whether to print only pem (useful for downloading certs from host)                                |
+| -sort-expiry  | sort certificates by expiration date                                                              |
 | -version      | certinfo version                                                                                  |
 | -help         | help                                                                                              |
 +---------------+---------------------------------------------------------------------------------------------------+

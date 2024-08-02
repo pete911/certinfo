@@ -8,6 +8,12 @@ import (
 func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation, printChains, printPem bool) {
 
 	for _, certificateLocation := range certificateLocations {
+		if certificateLocation.Error != nil {
+			fmt.Printf("--- [%s: %v] ---\n", certificateLocation.Name(), certificateLocation.Error)
+			fmt.Println()
+			continue
+		}
+
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
 		printCertificates(certificateLocation.Certificates, printPem)
 
@@ -56,11 +62,13 @@ func PrintPemOnly(certificateLocations []cert.CertificateLocation, printChains b
 func PrintCertificatesExpiry(certificateLocations []cert.CertificateLocation) {
 
 	for _, certificateLocation := range certificateLocations {
-		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
-		if len(certificateLocation.Certificates) == 0 {
-			// in case of error (no certificates), print new line
+		if certificateLocation.Error != nil {
+			fmt.Printf("--- [%s: %v] ---\n", certificateLocation.Name(), certificateLocation.Error)
 			fmt.Println()
+			continue
 		}
+
+		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
 		for _, certificate := range certificateLocation.Certificates {
 
 			fmt.Printf("Subject: %s\n", certificate.SubjectString())

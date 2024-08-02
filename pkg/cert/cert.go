@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/icza/gox/timex"
+	"slices"
 	"strings"
 	"time"
 )
@@ -37,6 +38,13 @@ func (c Certificates) RemoveDuplicates() Certificates {
 		}
 	}
 	return out
+}
+
+func (c Certificates) SortByExpiry() Certificates {
+	slices.SortFunc(c, func(a, b Certificate) int {
+		return a.x509Certificate.NotAfter.Compare(b.x509Certificate.NotAfter)
+	})
+	return c
 }
 
 type Certificate struct {

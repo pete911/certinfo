@@ -14,6 +14,7 @@ type Flags struct {
 	Expiry      bool
 	NoDuplicate bool
 	NoExpired   bool
+	SortExpiry  bool
 	Insecure    bool
 	Chains      bool
 	Pem         bool
@@ -33,6 +34,8 @@ func ParseFlags() (Flags, error) {
 		"do not print duplicate certificates")
 	flagSet.BoolVar(&flags.NoExpired, "no-expired", getBoolEnv("CERTINFO_NO_EXPIRED", false),
 		"do not print expired certificates")
+	flagSet.BoolVar(&flags.SortExpiry, "sort-expiry", getBoolEnv("CERTINFO_SORT_EXPIRY", false),
+		"sort certificates by expiration date")
 	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
 		"whether a client verifies the server's certificate chain and host name (only applicable for host)")
 	flagSet.BoolVar(&flags.Chains, "chains", getBoolEnv("CERTINFO_CHAINS", false),

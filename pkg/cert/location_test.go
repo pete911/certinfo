@@ -3,7 +3,9 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -56,5 +58,43 @@ func Test_loadCertificateFromClipboard(t *testing.T) {
 		cert := LoadCertificateFromClipboard()
 		require.Equal(t, 1, len(cert.Certificates))
 		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", cert.Certificates[0].SubjectString())
+	})
+}
+
+func TestCertificateLocation_SortByExpiry(t *testing.T) {
+	t.Run("given valid certificate in clipboard then cert is loaded", func(t *testing.T) {
+		locations := CertificateLocations{
+			{
+				Path: "three",
+				Certificates: Certificates{
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(3, 2, 3)}},
+				},
+			},
+			{
+				Path: "one",
+				Certificates: Certificates{
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 6, 2)}},
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 6, 21)}},
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(0, 6, 3)}},
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 3, 3)}},
+				},
+			},
+			{
+				Path: "four",
+			},
+			{
+				Path: "two",
+				Certificates: Certificates{
+					{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(0, 7, 3)}},
+				},
+			},
+		}
+
+		sortedLocations := locations.SortByExpiry()
+		require.Equal(t, 4, len(sortedLocations))
+		assert.Equal(t, "one", sortedLocations[0].Path)
+		assert.Equal(t, "two", sortedLocations[1].Path)
+		assert.Equal(t, "three", sortedLocations[2].Path)
+		assert.Equal(t, "four", sortedLocations[3].Path)
 	})
 }

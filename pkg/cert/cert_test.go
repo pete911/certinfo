@@ -1,10 +1,12 @@
 package cert
 
 import (
+	"crypto/x509"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFromBytes(t *testing.T) {
@@ -31,6 +33,25 @@ func TestCertificates_RemoveDuplicates(t *testing.T) {
 		require.Equal(t, 4, len(certificates))
 		noDuplicates := certificates.RemoveDuplicates()
 		require.Equal(t, 2, len(noDuplicates))
+	})
+}
+
+func TestCertificates_SortByExpiry(t *testing.T) {
+	t.Run("given multiple certificates, when they have different expiry, then they are sorted", func(t *testing.T) {
+		certificates := Certificates{
+			// using version to validate tests
+			{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(0, 6, 3), Version: 1}},
+			{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 6, 2), Version: 3}},
+			{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 6, 21), Version: 4}},
+			{x509Certificate: &x509.Certificate{NotAfter: time.Now().AddDate(1, 3, 3), Version: 2}},
+		}
+
+		sortedCertificates := certificates.SortByExpiry()
+		require.Equal(t, 4, len(sortedCertificates))
+		assert.Equal(t, 1, sortedCertificates[0].x509Certificate.Version)
+		assert.Equal(t, 2, sortedCertificates[1].x509Certificate.Version)
+		assert.Equal(t, 3, sortedCertificates[2].x509Certificate.Version)
+		assert.Equal(t, 4, sortedCertificates[3].x509Certificate.Version)
 	})
 }
 

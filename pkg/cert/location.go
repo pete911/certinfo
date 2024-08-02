@@ -3,11 +3,13 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"golang.design/x/clipboard"
 	"io"
 	"net"
 	"os"
+	"slices"
 	"time"
 )
 
@@ -31,9 +33,33 @@ func (c CertificateLocations) RemoveDuplicates() CertificateLocations {
 	return out
 }
 
+func (c CertificateLocations) SortByExpiry() CertificateLocations {
+	var out CertificateLocations
+	// sort certificates in every location
+	for i := range c {
+		out = append(out, c[i].SortByExpiry())
+	}
+
+	// sort locations by first certificate (they have been already sorted)
+	slices.SortFunc(out, func(a, b CertificateLocation) int {
+		if len(a.Certificates) == 0 && len(b.Certificates) == 0 {
+			return 0
+		}
+		if len(a.Certificates) == 0 {
+			return 1
+		}
+		if len(b.Certificates) == 0 {
+			return -1
+		}
+		return a.Certificates[0].x509Certificate.NotAfter.Compare(b.Certificates[0].x509Certificate.NotAfter)
+	})
+	return out
+}
+
 type CertificateLocation struct {
 	TLSVersion     uint16 // only applicable for network certificates
 	Path           string
+	Error          error
 	Certificates   Certificates
 	VerifiedChains []Certificates // only applicable for network certificates
 }
@@ -52,11 +78,16 @@ func (c CertificateLocation) RemoveDuplicates() CertificateLocation {
 	return c
 }
 
+func (c CertificateLocation) SortByExpiry() CertificateLocation {
+	c.Certificates = c.Certificates.SortByExpiry()
+	return c
+}
+
 func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) CertificateLocation {
 
 	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
 	if err != nil {
-		return CertificateLocation{Path: fmt.Sprintf("%s: %v", addr, err)}
+		return CertificateLocation{Path: addr, Error: err}
 	}
 
 	connectionState := conn.ConnectionState()
@@ -79,7 +110,7 @@ func LoadCertificatesFromFile(fileName string) CertificateLocation {
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
-		return CertificateLocation{Path: fmt.Sprintf("%s: %v", fileName, err)}
+		return CertificateLocation{Path: fileName, Error: err}
 	}
 	return loadCertificate(fileName, b)
 }
@@ -88,7 +119,7 @@ func LoadCertificateFromStdin() CertificateLocation {
 
 	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		return CertificateLocation{Path: fmt.Sprintf("stdin: %v", err)}
+		return CertificateLocation{Path: "stdin", Error: err}
 	}
 	return loadCertificate("stdin", content)
 }
@@ -96,12 +127,12 @@ func LoadCertificateFromStdin() CertificateLocation {
 func LoadCertificateFromClipboard() CertificateLocation {
 
 	if err := clipboard.Init(); err != nil {
-		return CertificateLocation{Path: fmt.Sprintf("clipboard: %v", err)}
+		return CertificateLocation{Path: "clipboard", Error: err}
 	}
 
 	content := clipboard.Read(clipboard.FmtText)
 	if content == nil {
-		return CertificateLocation{Path: "clipboard is empty"}
+		return CertificateLocation{Path: "clipboard", Error: errors.New("clipboard is empty")}
 	}
 	return loadCertificate("clipboard", content)
 }
@@ -110,7 +141,7 @@ func loadCertificate(fileName string, data []byte) CertificateLocation {
 
 	certificates, err := FromBytes(bytes.TrimSpace(data))
 	if err != nil {
-		return CertificateLocation{Path: fmt.Sprintf("%s: %v", fileName, err)}
+		return CertificateLocation{Path: fileName, Error: err}
 	}
 
 	return CertificateLocation{

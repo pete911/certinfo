@@ -31,6 +31,9 @@ func main() {
 	if flags.NoDuplicate {
 		certificatesFiles = certificatesFiles.RemoveDuplicates()
 	}
+	if flags.SortExpiry {
+		certificatesFiles = certificatesFiles.SortByExpiry()
+	}
 	if flags.Expiry {
 		PrintCertificatesExpiry(certificatesFiles)
 		return
@@ -87,11 +90,18 @@ func loadFromArgs(args []string, insecure bool) cert.CertificateLocations {
 		close(out)
 	}()
 
-	var certificateLocations cert.CertificateLocations
+	// load certificates from the channel
+	certsByArgs := make(map[string]cert.CertificateLocation)
 	for location := range out {
-		certificateLocations = append(certificateLocations, location)
+		certsByArgs[location.Path] = location
 	}
-	return certificateLocations
+
+	// sort certificates by input arguments
+	var certsSortedByArgs cert.CertificateLocations
+	for _, arg := range args {
+		certsSortedByArgs = append(certsSortedByArgs, certsByArgs[arg])
+	}
+	return certsSortedByArgs
 }
 
 func isTCPNetworkAddress(arg string) bool {
