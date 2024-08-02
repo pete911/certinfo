@@ -57,6 +57,10 @@ func PrintCertificatesExpiry(certificateLocations []cert.CertificateLocation) {
 
 	for _, certificateLocation := range certificateLocations {
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
+		if len(certificateLocation.Certificates) == 0 {
+			// in case of error (no certificates), print new line
+			fmt.Println()
+		}
 		for _, certificate := range certificateLocation.Certificates {
 
 			fmt.Printf("Subject: %s\n", certificate.SubjectString())

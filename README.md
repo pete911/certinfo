@@ -33,6 +33,10 @@ certinfo [flags] [<file>|<host:port> ...]
 +---------------+---------------------------------------------------------------------------------------------------+
 ```
 
+If you need to run against multiple hosts, it is faster to execute command with multiple arguments e.g.
+`certinfo -insecure -expiry google.com:443 amazon.com:443 ...` rather than executing command multiple times. Args are
+executed concurrently and much faster.
+
 Flags can be set as env. variable as well (`CERTINFO_<FLAG>=true` e.g. `CERTINFO_INSECURE=true`) and can be then
 overridden with a flag.
 

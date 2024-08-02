@@ -3,7 +3,6 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"golang.design/x/clipboard"
 	"io"
@@ -53,11 +52,11 @@ func (c CertificateLocation) RemoveDuplicates() CertificateLocation {
 	return c
 }
 
-func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLocation, error) {
+func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) CertificateLocation {
 
 	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
 	if err != nil {
-		return CertificateLocation{}, fmt.Errorf("tcp connection failed: %w", err)
+		return CertificateLocation{Path: fmt.Sprintf("%s: %v", addr, err)}
 	}
 
 	connectionState := conn.ConnectionState()
@@ -73,52 +72,51 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) (CertificateLo
 		Path:           addr,
 		Certificates:   FromX509Certificates(x509Certificates),
 		VerifiedChains: verifiedChains,
-	}, nil
+	}
 }
 
-func LoadCertificatesFromFile(fileName string) (CertificateLocation, error) {
+func LoadCertificatesFromFile(fileName string) CertificateLocation {
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
-		return CertificateLocation{}, fmt.Errorf("skipping %s file: %w", fileName, err)
+		return CertificateLocation{Path: fmt.Sprintf("%s: %v", fileName, err)}
 	}
 	return loadCertificate(fileName, b)
 }
 
-func LoadCertificateFromStdin() (CertificateLocation, error) {
+func LoadCertificateFromStdin() CertificateLocation {
 
 	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		return CertificateLocation{}, fmt.Errorf("reading stdin: %w", err)
+		return CertificateLocation{Path: fmt.Sprintf("stdin: %v", err)}
 	}
 	return loadCertificate("stdin", content)
 }
 
-func LoadCertificateFromClipboard() (CertificateLocation, error) {
+func LoadCertificateFromClipboard() CertificateLocation {
 
 	if err := clipboard.Init(); err != nil {
-		return CertificateLocation{}, fmt.Errorf("unable to load from clipboard: %w", err)
+		return CertificateLocation{Path: fmt.Sprintf("clipboard: %v", err)}
 	}
 
 	content := clipboard.Read(clipboard.FmtText)
 	if content == nil {
-		return CertificateLocation{}, errors.New("clipboard is empty")
+		return CertificateLocation{Path: "clipboard is empty"}
 	}
-
 	return loadCertificate("clipboard", content)
 }
 
-func loadCertificate(fileName string, data []byte) (CertificateLocation, error) {
+func loadCertificate(fileName string, data []byte) CertificateLocation {
 
 	certificates, err := FromBytes(bytes.TrimSpace(data))
 	if err != nil {
-		return CertificateLocation{}, fmt.Errorf("file %s: %w", fileName, err)
+		return CertificateLocation{Path: fmt.Sprintf("%s: %v", fileName, err)}
 	}
 
 	return CertificateLocation{
 		Path:         fileName,
 		Certificates: certificates,
-	}, nil
+	}
 }
 
 func nameFormat(name string, tlsVersion uint16) string {

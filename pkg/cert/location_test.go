@@ -30,15 +30,17 @@ func Test_nameFormat(t *testing.T) {
 func Test_loadCertificate(t *testing.T) {
 	t.Run("given valid certificate then cert location is loaded", func(t *testing.T) {
 		certificate := loadTestFile(t, "cert.pem")
-		_, err := loadCertificate("test", certificate)
-		require.NoError(t, err)
+		cert := loadCertificate("test", certificate)
+		require.Equal(t, 1, len(cert.Certificates))
+		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", cert.Certificates[0].SubjectString())
 	})
 
 	t.Run("given certificate with extra spaces then cert location is loaded", func(t *testing.T) {
 		certificate := loadTestFile(t, "cert.pem")
 		certificate = bytes.Join([][]byte{[]byte("   "), certificate}, []byte(""))
-		_, err := loadCertificate("test", certificate)
-		require.NoError(t, err)
+		cert := loadCertificate("test", certificate)
+		require.Equal(t, 1, len(cert.Certificates))
+		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", cert.Certificates[0].SubjectString())
 	})
 }
 
@@ -51,7 +53,8 @@ func Test_loadCertificateFromClipboard(t *testing.T) {
 		certificate := loadTestFile(t, "cert.pem")
 		clipboard.Write(clipboard.FmtText, certificate)
 
-		_, err := LoadCertificateFromClipboard()
-		require.NoError(t, err)
+		cert := LoadCertificateFromClipboard()
+		require.Equal(t, 1, len(cert.Certificates))
+		assert.Equal(t, "CN=DigiCert Global Root G2,OU=www.digicert.com,O=DigiCert Inc,C=US", cert.Certificates[0].SubjectString())
 	})
 }

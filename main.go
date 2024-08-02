@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 var Version = "dev"
@@ -45,40 +46,15 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 
 	var certificateLocations cert.CertificateLocations
 	if flags.Clipboard {
-		certificateLocation, err := cert.LoadCertificateFromClipboard()
-		if err != nil {
-			printCertFileError("clipboard", err)
-			return nil
-		}
-		certificateLocations = append(certificateLocations, certificateLocation)
+		certificateLocations = append(certificateLocations, cert.LoadCertificateFromClipboard())
 	}
 
 	if len(flags.Args) > 0 {
-		for _, arg := range flags.Args {
-
-			var certificateLocation cert.CertificateLocation
-			var err error
-			if isTCPNetworkAddress(arg) {
-				certificateLocation, err = cert.LoadCertificatesFromNetwork(arg, flags.Insecure)
-			} else {
-				certificateLocation, err = cert.LoadCertificatesFromFile(arg)
-			}
-
-			if err != nil {
-				printCertFileError(arg, err)
-				continue
-			}
-			certificateLocations = append(certificateLocations, certificateLocation)
-		}
+		certificateLocations = append(certificateLocations, loadFromArgs(flags.Args, flags.Insecure)...)
 	}
 
 	if isStdin() {
-		certificateLocation, err := cert.LoadCertificateFromStdin()
-		if err != nil {
-			printCertFileError("stdin", err)
-			return nil
-		}
-		certificateLocations = append(certificateLocations, certificateLocation)
+		certificateLocations = append(certificateLocations, cert.LoadCertificateFromStdin())
 	}
 
 	if len(certificateLocations) > 0 {
@@ -91,11 +67,31 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 	return nil
 }
 
-func printCertFileError(fileName string, err error) {
+func loadFromArgs(args []string, insecure bool) cert.CertificateLocations {
 
-	fmt.Printf("--- [%s] ---\n", fileName)
-	fmt.Println(err)
-	fmt.Println()
+	out := make(chan cert.CertificateLocation)
+	go func() {
+		var wg sync.WaitGroup
+		for _, arg := range args {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				if isTCPNetworkAddress(arg) {
+					out <- cert.LoadCertificatesFromNetwork(arg, insecure)
+					return
+				}
+				out <- cert.LoadCertificatesFromFile(arg)
+			}()
+		}
+		wg.Wait()
+		close(out)
+	}()
+
+	var certificateLocations cert.CertificateLocations
+	for location := range out {
+		certificateLocations = append(certificateLocations, location)
+	}
+	return certificateLocations
 }
 
 func isTCPNetworkAddress(arg string) bool {
