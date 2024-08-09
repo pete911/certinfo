@@ -38,7 +38,7 @@ brews:
     name: certinfo
     homepage: "https://github.com/pete911/certinfo"
     description: "Print x509 certificate info."
-    folder: Formula
+    directory: Formula
     install: |
       bin.install "certinfo"
     test: |
