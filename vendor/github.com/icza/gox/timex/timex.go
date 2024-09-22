@@ -58,9 +58,26 @@ func Diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	return
 }
 
+// WeekStartTime returns the time instant pointing to the start of the (ISO) week denoted
+// by the given timestamp. Weeks are interpreted starting on Monday,
+// so the returned instant will be 00:00 UTC of Monday of the designated week.
+//
+// This function only returns the given week's first day (Monday), because the
+// last day of the week is always its first day + 6 days.
+func WeekStartTime(t time.Time) time.Time {
+	year, month, day := t.UTC().Date()
+	t = time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+
+	if wd := t.Weekday(); wd == time.Sunday {
+		return t.AddDate(0, 0, -6)
+	} else {
+		return t.AddDate(0, 0, -int(wd)+1)
+	}
+}
+
 // WeekStart returns the time instant pointing to the start of the week given
 // by its year and ISO Week. Weeks are interpreted starting on Monday,
-// so the returned instant will be 00:00 of Monday of the designated week.
+// so the returned instant will be 00:00 UTC of Monday of the designated week.
 //
 // One nice property of this function is that it handles out-of-range weeks nicely.
 // That is, if you pass 0 for the week, it will be interpreted as the last week
@@ -77,6 +94,7 @@ func WeekStart(year, week int) time.Time {
 	t := time.Date(year, 7, 1, 0, 0, 0, 0, time.UTC)
 
 	// Roll back to Monday:
+	// (NOTE: do not call WeekStartTime() for performance reasons: t already has 0 time)
 	if wd := t.Weekday(); wd == time.Sunday {
 		t = t.AddDate(0, 0, -6)
 	} else {
