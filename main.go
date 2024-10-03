@@ -31,6 +31,12 @@ func main() {
 	if flags.NoDuplicate {
 		certificatesFiles = certificatesFiles.RemoveDuplicates()
 	}
+	if flags.SubjectLike != "" {
+		certificatesFiles = certificatesFiles.SubjectLike(flags.SubjectLike)
+	}
+	if flags.IssuerLike != "" {
+		certificatesFiles = certificatesFiles.IssuerLike(flags.IssuerLike)
+	}
 	if flags.SortExpiry {
 		certificatesFiles = certificatesFiles.SortByExpiry()
 	}

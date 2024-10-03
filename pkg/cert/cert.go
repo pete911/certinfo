@@ -40,6 +40,26 @@ func (c Certificates) RemoveDuplicates() Certificates {
 	return out
 }
 
+func (c Certificates) SubjectLike(subject string) Certificates {
+	var out Certificates
+	for i := range c {
+		if strings.Contains(c[i].SubjectString(), subject) {
+			out = append(out, c[i])
+		}
+	}
+	return out
+}
+
+func (c Certificates) IssuerLike(issuer string) Certificates {
+	var out Certificates
+	for i := range c {
+		if strings.Contains(c[i].x509Certificate.Issuer.String(), issuer) {
+			out = append(out, c[i])
+		}
+	}
+	return out
+}
+
 func (c Certificates) SortByExpiry() Certificates {
 	slices.SortFunc(c, func(a, b Certificate) int {
 		return a.x509Certificate.NotAfter.Compare(b.x509Certificate.NotAfter)

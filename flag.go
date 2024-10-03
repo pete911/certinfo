@@ -15,6 +15,8 @@ type Flags struct {
 	NoDuplicate bool
 	NoExpired   bool
 	SortExpiry  bool
+	SubjectLike string
+	IssuerLike  string
 	Insecure    bool
 	Chains      bool
 	Pem         bool
@@ -36,6 +38,10 @@ func ParseFlags() (Flags, error) {
 		"do not print expired certificates")
 	flagSet.BoolVar(&flags.SortExpiry, "sort-expiry", getBoolEnv("CERTINFO_SORT_EXPIRY", false),
 		"sort certificates by expiration date")
+	flagSet.StringVar(&flags.SubjectLike, "subject-like", getStringEnv("CERTINFO_SUBJECT_LIKE", ""),
+		"print certificates with issuer field containing supplied string")
+	flagSet.StringVar(&flags.IssuerLike, "issuer-like", getStringEnv("CERTINFO_ISSUER_LIKE", ""),
+		"print certificates with subject field containing supplied string")
 	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
 		"whether a client verifies the server's certificate chain and host name (only applicable for host)")
 	flagSet.BoolVar(&flags.Chains, "chains", getBoolEnv("CERTINFO_CHAINS", false),
@@ -62,6 +68,14 @@ func ParseFlags() (Flags, error) {
 	}
 	flags.Args = flagSet.Args()
 	return flags, nil
+}
+
+func getStringEnv(envName string, defaultValue string) string {
+
+	if env, ok := os.LookupEnv(envName); ok {
+		return env
+	}
+	return defaultValue
 }
 
 func getBoolEnv(envName string, defaultValue bool) bool {

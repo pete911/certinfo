@@ -24,11 +24,13 @@ certinfo [flags] [<file>|<host:port> ...]
 | -clipboard    | read input from clipboard (only if the clipboard is supported)                                    |
 | -expiry       | print expiry of certificates                                                                      |
 | -insecure     | whether a client verifies the server's certificate chain and host name (only applicable for host) |
+| -issuer-like  | print certificates with subject field containing supplied string                                  |
 | -no-duplicate | do not print duplicate certificates                                                               |
 | -no-expired   | do not print expired certificates                                                                 |
 | -pem          | whether to print pem as well                                                                      |
 | -pem-only     | whether to print only pem (useful for downloading certs from host)                                |
 | -sort-expiry  | sort certificates by expiration date                                                              |
+| -subject-like | print certificates with issuer field containing supplied string                                   |
 | -version      | certinfo version                                                                                  |
 | -help         | help                                                                                              |
 +---------------+---------------------------------------------------------------------------------------------------+
@@ -145,6 +147,11 @@ Expiry: 4 years 6 months 19 days 5 hours 29 minutes
 Subject: CN=GTS Root R1,O=Google Trust Services LLC,C=US
 Expiry: 4 years 10 months 17 days 4 hours 29 minutes
 ```
+
+### show certificate with specific subject
+This example shows AWS RDS certificates for specific region (we can also see AWS for 100 years expiration)
+- show only eu-west-2 certs `curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem | certinfo -issuer-like eu-west-2`
+- download only eu-west-2 certs `curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem | certinfo -issuer-like eu-west-2 -pem-only > rds-eu-west-2.pem`
 
 ### local root certs
 

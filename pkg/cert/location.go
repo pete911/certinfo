@@ -33,6 +33,22 @@ func (c CertificateLocations) RemoveDuplicates() CertificateLocations {
 	return out
 }
 
+func (c CertificateLocations) SubjectLike(subject string) CertificateLocations {
+	var out CertificateLocations
+	for i := range c {
+		out = append(out, c[i].SubjectLike(subject))
+	}
+	return out
+}
+
+func (c CertificateLocations) IssuerLike(issuer string) CertificateLocations {
+	var out CertificateLocations
+	for i := range c {
+		out = append(out, c[i].IssuerLike(issuer))
+	}
+	return out
+}
+
 func (c CertificateLocations) SortByExpiry() CertificateLocations {
 	var out CertificateLocations
 	// sort certificates in every location
@@ -75,6 +91,16 @@ func (c CertificateLocation) RemoveExpired() CertificateLocation {
 
 func (c CertificateLocation) RemoveDuplicates() CertificateLocation {
 	c.Certificates = c.Certificates.RemoveDuplicates()
+	return c
+}
+
+func (c CertificateLocation) SubjectLike(subject string) CertificateLocation {
+	c.Certificates = c.Certificates.SubjectLike(subject)
+	return c
+}
+
+func (c CertificateLocation) IssuerLike(issuer string) CertificateLocation {
+	c.Certificates = c.Certificates.IssuerLike(issuer)
 	return c
 }
 
