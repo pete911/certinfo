@@ -177,6 +177,10 @@ func (c Certificate) String() string {
 
 	keyUsage := KeyUsageToString(c.x509Certificate.KeyUsage)
 	extKeyUsage := ExtKeyUsageToString(c.x509Certificate.ExtKeyUsage)
+	var authorityKeyId string
+	if c.x509Certificate.AuthorityKeyId != nil {
+		authorityKeyId = formatHexArray(c.x509Certificate.AuthorityKeyId)
+	}
 
 	return strings.Join([]string{
 		fmt.Sprintf("Version: %d", c.x509Certificate.Version),
@@ -190,12 +194,24 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Subject: %s", c.SubjectString()),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
-		fmt.Sprintf("Authority Key Id: %s", formatHexArray(c.x509Certificate.AuthorityKeyId)),
+		fmt.Sprintf("Authority Key Id: %s", authorityKeyId),
 		fmt.Sprintf("Subject Key Id  : %s", formatHexArray(c.x509Certificate.SubjectKeyId)),
 		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
 		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
 		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
 	}, "\n")
+}
+
+func (c Certificate) Extensions() string {
+	var lines []string
+	for _, v := range ToExtensions(c.x509Certificate.Extensions) {
+		name := fmt.Sprintf("%s (%s)", v.Name, v.Oid)
+		if v.Critical {
+			name = fmt.Sprintf("%s [critical]", name)
+		}
+		lines = append(lines, fmt.Sprintf("%s\n  %s", name, v.Value))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func formatExpiry(t time.Time) string {
@@ -224,5 +240,5 @@ func formatHexArray(b []byte) string {
 	for i := 0; i < len(x); i += 2 {
 		buf = append(buf, x[i], x[i+1], ':')
 	}
-	return string(buf[:len(buf)-1])
+	return strings.ToUpper(string(buf[:len(buf)-1]))
 }

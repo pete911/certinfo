@@ -9,6 +9,7 @@ import (
 
 type Extension struct {
 	Name     string
+	Oid      string
 	Critical bool
 	Value    string
 }
@@ -19,6 +20,7 @@ func ToExtensions(in []pkix.Extension) []Extension {
 		name, value := parseExtension(v)
 		out = append(out, Extension{
 			Name:     name,
+			Oid:      v.Id.String(),
 			Critical: v.Critical,
 			Value:    value,
 		})
@@ -30,29 +32,31 @@ func parseExtension(in pkix.Extension) (string, string) {
 	if fn, ok := extensionsByOid[in.Id.String()]; ok {
 		return fn(in.Value)
 	}
-	return in.Id.String(), "-"
+	return "-", in.Id.String()
 }
 
 var extensionsByOid = map[string]func(in []byte) (string, string){
-	"2.5.29.35": parseAuthorityKeyIdentifier, // parser.go 745
-	"2.5.29.14": parseSubjectKeyIdentifier,   // parser.go 755
-	"2.5.29.15": parseKeyUsage,               // parser.go 671
-	//"2.5.29.32": parseCertificatePolicies, // parser.go 767
+	"2.5.29.35": parseAuthorityKeyIdentifier,
+	"2.5.29.14": parseSubjectKeyIdentifier,
+	"2.5.29.15": parseKeyUsage,
+	"2.5.29.32": parseCertificatePolicies,
 	//"2.5.29.33": parsePolicyMappings,
-	//"2.5.29.17": parseSubjectAlternativeName, // parser.go 683
+	"2.5.29.17": parseSubjectAltName,
 	//"2.5.29.18": parseIssuerAlternativeName,
 	//"2.5.29.9": parseSubjectDirectoryAttributes,
 	"2.5.29.19": parseBasicConstraints,
-	//"2.5.29.30": parseNameConstraints, // parser.go 694
+	//"2.5.29.30": parseNameConstraints,
 	//"2.5.29.36": parsePolicyConstraints,
-	//"2.5.29.37": parseExtendedKeyUsage, // parser.go 750
-	// TODO - structure error: sequence tag mismatch
-	//"2.5.29.31": parseCRLDistributionPoints, // parser.go 700
+	"2.5.29.37": parseExtendedKeyUsage,
+	"2.5.29.31": parseCRLDistributionPoints,
 	//"2.5.29.54": parseInhibitAnyPolicy,
 	//"2.5.29.46": parseFreshestCRL,
 	// private internet extensions
 	//"1.3.6.1.5.5.7.1": parseAuthorityInformationAccess,
 	//"1.3.6.1.5.5.7.11": parseSubjectInformationAccess,
+	// TODO
+	//"1.3.6.1.5.5.7.1.1": parseAuthorityInfoAccessSyntax
+	// "1.3.6.1.4.1.11129.2.4.2" parseOID ???
 }
 
 // AuthorityKeyIdentifier ::= SEQUENCE {
@@ -63,17 +67,18 @@ var extensionsByOid = map[string]func(in []byte) (string, string){
 // -- be present or both be absent
 func parseAuthorityKeyIdentifier(in []byte) (string, string) {
 	name := "Authority Key Identifier"
-	var out AuthorityKeyIdentifier
-	if _, err := asn1.Unmarshal(in, &out); err != nil {
+	out, err := ToAuthorityKeyIdentifier(in)
+	if err != nil {
 		return name, err.Error()
 	}
 
-	fields := []string{fmt.Sprintf("Key Identifier: %s", formatHexArray(out.KeyIdentifier.Bytes))}
+	fields := []string{formatHexArray(out.KeyIdentifier)}
 	if out.AuthorityCertIssuer != nil {
-		// TODO append to fields
+		v := strings.Join(out.AuthorityCertIssuer, ", ")
+		fields = append(fields, fmt.Sprintf("Authority Cert. Issuer: %s", v))
 	}
 	if out.AuthorityCertSerialNumber != 0 {
-		// TODO append to fields
+		fields = append(fields, fmt.Sprintf("Authority Cert SN: %d", out.AuthorityCertSerialNumber))
 	}
 	return name, strings.Join(fields, ", ")
 }
@@ -101,11 +106,38 @@ func parseSubjectKeyIdentifier(in []byte) (string, string) {
 //	   decipherOnly            (8) }
 func parseKeyUsage(in []byte) (string, string) {
 	name := "Key Usage"
-	var out asn1.BitString
-	if _, err := asn1.Unmarshal(in, &out); err != nil {
+	out, err := ToKeyUsage(in)
+	if err != nil {
 		return name, err.Error()
 	}
-	return name, strings.Join(toKeyUsage(out), ", ")
+	return name, strings.Join(out, ", ")
+}
+
+func parseCertificatePolicies(in []byte) (string, string) {
+	name := "Certificate Policies"
+	out, err := ToCertificatePolicies(in)
+	if err != nil {
+		return name, err.Error()
+	}
+	return name, strings.Join(out, ", ")
+}
+
+func parseSubjectAltName(in []byte) (string, string) {
+	name := "Subject Alt. Name"
+	out, err := ToGeneralNames(in)
+	if err != nil {
+		return name, err.Error()
+	}
+	return name, strings.Join(out, ", ")
+}
+
+func parseExtendedKeyUsage(in []byte) (string, string) {
+	name := "Extended Key Usage"
+	out, err := ToExtendedKeyUsage(in)
+	if err != nil {
+		return name, err.Error()
+	}
+	return name, strings.Join(out, ", ")
 }
 
 // CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
@@ -120,13 +152,27 @@ func parseKeyUsage(in []byte) (string, string) {
 //	    nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
 func parseCRLDistributionPoints(in []byte) (string, string) {
 	name := "CRL Distribution Points"
-	var out CRLDistributionPoints
-	if _, err := asn1.Unmarshal(in, &out); err != nil {
+	out, err := ToCRLDistributionPoints(in)
+	if err != nil {
 		return name, err.Error()
 	}
-
-	// TODO ...
-	return name, fmt.Sprintf("%+v", out)
+	var points []string
+	for _, v := range out {
+		var point []string
+		if len(v.DistributionPoint) != 0 {
+			point = append(point, fmt.Sprintf("Distribution Point: %s", strings.Join(v.DistributionPoint, ", ")))
+		}
+		if len(v.Reasons) != 0 {
+			point = append(point, fmt.Sprintf("Reasons: %s", strings.Join(v.Reasons, ", ")))
+		}
+		if len(v.CRLIssuer) != 0 {
+			point = append(point, fmt.Sprintf("CRL Issuer: %s", strings.Join(v.CRLIssuer, ", ")))
+		}
+		if len(point) != 0 {
+			points = append(points, strings.Join(point, " "))
+		}
+	}
+	return name, strings.Join(points, "; ")
 }
 
 // BasicConstraints ::= SEQUENCE {
@@ -134,8 +180,8 @@ func parseCRLDistributionPoints(in []byte) (string, string) {
 // pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
 func parseBasicConstraints(in []byte) (string, string) {
 	name := "Basic Constraints"
-	var out BasicConstraints
-	if _, err := asn1.Unmarshal(in, &out); err != nil {
+	out, err := ToBasicConstraints(in)
+	if err != nil {
 		return name, err.Error()
 	}
 
