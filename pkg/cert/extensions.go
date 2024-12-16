@@ -14,7 +14,6 @@ type Extension struct {
 }
 
 func ToExtensions(in []pkix.Extension) []Extension {
-
 	var out []Extension
 	for _, v := range in {
 		name, value := parseExtension(v)
@@ -35,9 +34,9 @@ func parseExtension(in pkix.Extension) (string, string) {
 }
 
 var extensionsByOid = map[string]func(in []byte) (string, string){
-	//"2.5.29.35": parseAuthorityKeyIdentifier, // parser.go 745
-	"2.5.29.14": parseSubjectKeyIdentifier, // parser.go 755
-	"2.5.29.15": parseKeyUsage,             // parser.go 671
+	"2.5.29.35": parseAuthorityKeyIdentifier, // parser.go 745
+	"2.5.29.14": parseSubjectKeyIdentifier,   // parser.go 755
+	"2.5.29.15": parseKeyUsage,               // parser.go 671
 	//"2.5.29.32": parseCertificatePolicies, // parser.go 767
 	//"2.5.29.33": parsePolicyMappings,
 	//"2.5.29.17": parseSubjectAlternativeName, // parser.go 683
@@ -47,7 +46,8 @@ var extensionsByOid = map[string]func(in []byte) (string, string){
 	//"2.5.29.30": parseNameConstraints, // parser.go 694
 	//"2.5.29.36": parsePolicyConstraints,
 	//"2.5.29.37": parseExtendedKeyUsage, // parser.go 750
-	"2.5.29.31": parseCRLDistributionPoints, // parser.go 700
+	// TODO - structure error: sequence tag mismatch
+	//"2.5.29.31": parseCRLDistributionPoints, // parser.go 700
 	//"2.5.29.54": parseInhibitAnyPolicy,
 	//"2.5.29.46": parseFreshestCRL,
 	// private internet extensions
@@ -55,6 +55,30 @@ var extensionsByOid = map[string]func(in []byte) (string, string){
 	//"1.3.6.1.5.5.7.11": parseSubjectInformationAccess,
 }
 
+// AuthorityKeyIdentifier ::= SEQUENCE {
+// keyIdentifier             [0] KeyIdentifier            OPTIONAL,
+// authorityCertIssuer       [1] GeneralNames             OPTIONAL,
+// authorityCertSerialNumber [2] CertificateSerialNumber  OPTIONAL }
+// -- authorityCertIssuer and authorityCertSerialNumber MUST both
+// -- be present or both be absent
+func parseAuthorityKeyIdentifier(in []byte) (string, string) {
+	name := "Authority Key Identifier"
+	var out AuthorityKeyIdentifier
+	if _, err := asn1.Unmarshal(in, &out); err != nil {
+		return name, err.Error()
+	}
+
+	fields := []string{fmt.Sprintf("Key Identifier: %s", formatHexArray(out.KeyIdentifier.Bytes))}
+	if out.AuthorityCertIssuer != nil {
+		// TODO append to fields
+	}
+	if out.AuthorityCertSerialNumber != 0 {
+		// TODO append to fields
+	}
+	return name, strings.Join(fields, ", ")
+}
+
+// SubjectKeyIdentifier ::= KeyIdentifier
 func parseSubjectKeyIdentifier(in []byte) (string, string) {
 	name := "Subject Key Identifier"
 	out := asn1.RawValue{Tag: asn1.TagOctetString}
@@ -64,6 +88,17 @@ func parseSubjectKeyIdentifier(in []byte) (string, string) {
 	return name, formatHexArray(out.Bytes)
 }
 
+//	KeyUsage ::= BIT STRING {
+//	   digitalSignature        (0),
+//	   nonRepudiation          (1),  -- recent editions of X.509 have
+//	                              -- renamed this bit to contentCommitment
+//	   keyEncipherment         (2),
+//	   dataEncipherment        (3),
+//	   keyAgreement            (4),
+//	   keyCertSign             (5),
+//	   cRLSign                 (6),
+//	   encipherOnly            (7),
+//	   decipherOnly            (8) }
 func parseKeyUsage(in []byte) (string, string) {
 	name := "Key Usage"
 	var out asn1.BitString
@@ -71,41 +106,6 @@ func parseKeyUsage(in []byte) (string, string) {
 		return name, err.Error()
 	}
 	return name, strings.Join(toKeyUsage(out), ", ")
-}
-
-type GeneralNames []GeneralName
-
-type OtherName struct {
-	TypeId asn1.ObjectIdentifier
-	Value  asn1.RawValue `asn1:"optional"`
-}
-
-//	OtherName ::= SEQUENCE {
-//	    type-id OBJECT IDENTIFIER,
-//	    value   [0] EXPLICIT ANY DEFINED BY type-id }
-
-//	GeneralName ::= CHOICE {
-//	    otherName                 [0] OtherName,
-//	    rfc822Name                [1] IA5String,
-//	    dNSName                   [2] IA5String,
-//	    x400Address               [3] ORAddress,
-//	    directoryName             [4] Name,
-//	    ediPartyName              [5] EDIPartyName,
-//	    uniformResourceIdentifier [6] IA5String,
-//	    iPAddress                 [7] OCTET STRING,
-//	    registeredID              [8] OBJECT IDENTIFIER }
-// TODO - decode raw values, switch on generalName.Tag - https://github.com/golang/go/issues/13999
-// return string (key), string (values)
-type GeneralName struct {
-	OtherName                 asn1.RawValue `asn1:"tag:0,optional"`
-	Rfc822Name                asn1.RawValue `asn1:"tag:1,optional"`
-	DNSName                   asn1.RawValue `asn1:"tag:2,optional"`
-	X400Address               asn1.RawValue `asn1:"tag:3,optional"`
-	DirectoryName             asn1.RawValue `asn1:"tag:4,optional"`
-	EdiPartyName              asn1.RawValue `asn1:"tag:5,optional"`
-	UniformResourceIdentifier asn1.RawValue `asn1:"tag:6,optional"`
-	IPAddress                 asn1.RawValue `asn1:"tag:7,optional"`
-	RegisteredID              asn1.RawValue `asn1:"tag:8,optional"`
 }
 
 // CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
@@ -120,33 +120,21 @@ type GeneralName struct {
 //	    nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
 func parseCRLDistributionPoints(in []byte) (string, string) {
 	name := "CRL Distribution Points"
-	out := struct {
-		DistributionPoint []struct {
-			DistributionPointName struct {
-			}
-		} `asn1:"optional"`
-		CA                bool `asn1:"optional"`
-		PathLenConstraint int  `asn1:"optional"`
-	}{}
-
+	var out CRLDistributionPoints
 	if _, err := asn1.Unmarshal(in, &out); err != nil {
 		return name, err.Error()
 	}
 
-	fields := []string{fmt.Sprintf("CA: %t", out.CA)}
-	if out.PathLenConstraint != 0 {
-		fields = append(fields, fmt.Sprintf("PathLenConstraint: %d", out.PathLenConstraint))
-	}
-	return name, strings.Join(fields, ", ")
+	// TODO ...
+	return name, fmt.Sprintf("%+v", out)
 }
 
+// BasicConstraints ::= SEQUENCE {
+// cA                      BOOLEAN DEFAULT FALSE,
+// pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
 func parseBasicConstraints(in []byte) (string, string) {
 	name := "Basic Constraints"
-	out := struct {
-		CA                bool `asn1:"optional"`
-		PathLenConstraint int  `asn1:"optional"`
-	}{}
-
+	var out BasicConstraints
 	if _, err := asn1.Unmarshal(in, &out); err != nil {
 		return name, err.Error()
 	}
@@ -156,27 +144,4 @@ func parseBasicConstraints(in []byte) (string, string) {
 		fields = append(fields, fmt.Sprintf("PathLenConstraint: %d", out.PathLenConstraint))
 	}
 	return name, strings.Join(fields, ", ")
-}
-
-// order is important!
-var keyUsage = []string{
-	"Digital Signature",
-	"Content Commitment", // renamed from non repudiation
-	"Key Encipherment",
-	"Data Encipherment",
-	"Key Agreement",
-	"Key Cert Sign",
-	"CRLs Sign",
-	"Encipher Only",
-	"Decipher Only",
-}
-
-func toKeyUsage(in asn1.BitString) []string {
-	var out []string
-	for i, v := range keyUsage {
-		if in.At(i) != 0 {
-			out = append(out, v)
-		}
-	}
-	return out
 }

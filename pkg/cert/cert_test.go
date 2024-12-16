@@ -113,9 +113,11 @@ func Test_intermediateIdentification(t *testing.T) {
 
 func TestExtensionsManual(t *testing.T) {
 	// 4E:22:54:20:18:95:E6:E3:6E:E6:0F:FA:FA:B9:12:ED:06:17:8F:39
-	certificates := loadTestCertificates(t, "cert.pem")
+	//certificates := loadTestCertificates(t, "cert.pem")
+	certificates := loadTestCertificates(t, "intermediate_same_issuer_and_subject.pem")
 	extensions := ToExtensions(certificates[0].x509Certificate.Extensions)
 	for _, extension := range extensions {
 		fmt.Printf("%+v\n", extension)
 	}
+	fmt.Println(certificates[0].String())
 }
