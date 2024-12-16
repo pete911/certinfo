@@ -209,7 +209,10 @@ func (c Certificate) Extensions() string {
 		if v.Critical {
 			name = fmt.Sprintf("%s [critical]", name)
 		}
-		lines = append(lines, fmt.Sprintf("%s\n  %s", name, v.Value))
+		lines = append(lines, name)
+		for _, line := range v.Values {
+			lines = append(lines, fmt.Sprintf("  %s", line))
+		}
 	}
 	return strings.Join(lines, "\n")
 }

@@ -235,6 +235,49 @@ func ToKeyUsage(in []byte) ([]string, error) {
 	return toKeyUsage(out), nil
 }
 
+// AuthorityInfoAccessSyntax  ::=
+// SEQUENCE SIZE (1..MAX) OF AccessDescription
+//
+// AccessDescription  ::=  SEQUENCE {
+// accessMethod          OBJECT IDENTIFIER,
+// accessLocation        GeneralName  }
+
+type AccessDescription struct {
+	AccessMethod   string
+	AccessLocation string
+}
+
+func ToAuthorityInformationAccess(in []byte) ([]AccessDescription, error) {
+	sequence := asn1.RawValue{Tag: asn1.TagSequence}
+	if _, err := asn1.Unmarshal(in, &sequence); err != nil {
+		return nil, err
+	}
+	in = sequence.Bytes
+
+	var accesses []AccessDescription
+	for {
+		var out struct {
+			AccessMethod   asn1.ObjectIdentifier
+			AccessLocation asn1.RawValue // TODO parse to general name
+		}
+		rest, err := asn1.Unmarshal(in, &out)
+		if err != nil {
+			return nil, err
+		}
+		name := toGeneralName(out.AccessLocation)
+		oid := out.AccessMethod.String()
+		accesses = append(accesses, AccessDescription{
+			AccessMethod:   fmt.Sprintf("%s (%s)", accessDescriptorsOIDs[oid], oid),
+			AccessLocation: fmt.Sprintf("%s: %s", name.Type, name.Value),
+		})
+		if len(rest) == 0 {
+			break
+		}
+		in = rest
+	}
+	return accesses, nil
+}
+
 func ToExtendedKeyUsage(in []byte) ([]string, error) {
 	sequence := asn1.RawValue{Tag: asn1.TagSequence}
 	if _, err := asn1.Unmarshal(in, &sequence); err != nil {
@@ -252,7 +295,7 @@ func ToExtendedKeyUsage(in []byte) ([]string, error) {
 
 		extKeyUsage := out.String()
 		if v, ok := idKpOIDs[extKeyUsage]; ok {
-			extKeyUsage = fmt.Sprintf("%s - %s", extKeyUsage, v)
+			extKeyUsage = fmt.Sprintf("%s (%s)", v, extKeyUsage)
 		}
 		extKeyUsages = append(extKeyUsages, extKeyUsage)
 
@@ -312,7 +355,7 @@ func ToCertificatePolicies(in []byte) ([]string, error) {
 		policy := out.PolicyIdentifier.String()
 		if v, ok := certificatePoliciesOIDs[policy]; ok {
 			// if we find correct oid, use that
-			policy = fmt.Sprintf("%s - %s", policy, v)
+			policy = fmt.Sprintf("%s (%s)", v, policy)
 		}
 		// TODO - policy qualifiers when I find appropriate cert to test
 
@@ -324,6 +367,14 @@ func ToCertificatePolicies(in []byte) ([]string, error) {
 		in = rest
 	}
 	return policies, nil
+}
+
+func ToSignedCertificateTimestampList(in []byte) ([]byte, error) {
+	var out asn1.RawValue // OCTET STRING
+	if _, err := asn1.Unmarshal(in, &out); err != nil {
+		return nil, err
+	}
+	return out.Bytes, nil
 }
 
 // --- bit strings and conversions ---
@@ -420,26 +471,34 @@ func toGeneralName(in asn1.RawValue) GeneralName {
 // --- OIDs ---
 
 var certificatePoliciesOIDs = map[string]string{
-	"2.23.140.1.1": "ev-guidelines",
+	"2.5.29.32.0": "any policy",
+	"2.5.29.32.2": "ldap",
+
+	"2.23.140.1.1": "ev guidelines",
 
 	// baseline requirements
-	"2.23.140.1.2.1": "domain-validated",
-	"2.23.140.1.2.2": "organization-validated",
-	"2.23.140.1.2.3": "individual-validated",
+	"2.23.140.1.2.1": "domain validated",
+	"2.23.140.1.2.2": "organization validated",
+	"2.23.140.1.2.3": "individual validated",
 
-	"2.23.140.1.3": "extended-validation-codesigning",
+	"2.23.140.1.3": "extended-validation codesigning",
 
 	// code-signing-requirements
-	"2.23.140.1.4.1": "code-signing",
+	"2.23.140.1.4.1": "code signing",
 	"2.23.140.1.4.2": "timestamping",
 
 	// smime
-	"2.23.140.1.5.1": "mailbox-validated",
-	"2.23.140.1.5.2": "organization-validated",
-	"2.23.140.1.5.3": "sponsor-validated",
-	"2.23.140.1.5.4": "individual-validated",
+	"2.23.140.1.5.1": "mailbox validated",
+	"2.23.140.1.5.2": "organization validated",
+	"2.23.140.1.5.3": "sponsor validated",
+	"2.23.140.1.5.4": "individual validated",
 
 	"2.23.140.31": "onion-ev",
+
+	// google trust services, certificate policy
+	"1.3.6.1.4.1.11129.2.5.3.1": "signed http exchanges",
+	"1.3.6.1.4.1.11129.2.5.3.2": "client authentication",
+	"1.3.6.1.4.1.11129.2.5.3.3": "document signing",
 }
 
 var idKpOIDs = map[string]string{
@@ -453,4 +512,21 @@ var idKpOIDs = map[string]string{
 	"1.3.6.1.5.5.7.3.8": "time stamping",
 	"1.3.6.1.5.5.7.3.9": "OCSP signing",
 	// TODO add the rest
+}
+
+var accessDescriptorsOIDs = map[string]string{
+	"1.3.6.1.5.5.7.48.1":  "ocsp",
+	"1.3.6.1.5.5.7.48.2":  "ca issuers",
+	"1.3.6.1.5.5.7.48.3":  "time stamping",
+	"1.3.6.1.5.5.7.48.4":  "dvcs",
+	"1.3.6.1.5.5.7.48.5":  "ca repository",
+	"1.3.6.1.5.5.7.48.6":  "http certs",
+	"1.3.6.1.5.5.7.48.7":  "http crls",
+	"1.3.6.1.5.5.7.48.8":  "xkms",
+	"1.3.6.1.5.5.7.48.9":  "signed object repository",
+	"1.3.6.1.5.5.7.48.10": "rpki manifest",
+	"1.3.6.1.5.5.7.48.11": "signed object",
+	"1.3.6.1.5.5.7.48.12": "cmc",
+	"1.3.6.1.5.5.7.48.13": "rpki notify",
+	"1.3.6.1.5.5.7.48.14": "stir tn list",
 }
