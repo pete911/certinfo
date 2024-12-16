@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -153,7 +154,7 @@ func (c Certificate) ExpiryString() string {
 	if c.err != nil {
 		return "-"
 	}
-	expiry := expiryFormat(c.x509Certificate.NotAfter)
+	expiry := formatExpiry(c.x509Certificate.NotAfter)
 	if c.IsExpired() {
 		return fmt.Sprintf("EXPIRED %s ago", expiry)
 	}
@@ -176,10 +177,14 @@ func (c Certificate) String() string {
 
 	keyUsage := KeyUsageToString(c.x509Certificate.KeyUsage)
 	extKeyUsage := ExtKeyUsageToString(c.x509Certificate.ExtKeyUsage)
+	var authorityKeyId string
+	if c.x509Certificate.AuthorityKeyId != nil {
+		authorityKeyId = formatHexArray(c.x509Certificate.AuthorityKeyId)
+	}
 
 	return strings.Join([]string{
 		fmt.Sprintf("Version: %d", c.x509Certificate.Version),
-		fmt.Sprintf("Serial Number: %d", c.x509Certificate.SerialNumber),
+		fmt.Sprintf("Serial Number: %s", formatHexArray(c.x509Certificate.SerialNumber.Bytes())),
 		fmt.Sprintf("Signature Algorithm: %s", c.x509Certificate.SignatureAlgorithm),
 		fmt.Sprintf("Type: %s", CertificateType(c.x509Certificate)),
 		fmt.Sprintf("Issuer: %s", c.x509Certificate.Issuer),
@@ -189,15 +194,27 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Subject: %s", c.SubjectString()),
 		fmt.Sprintf("DNS Names: %s", dnsNames),
 		fmt.Sprintf("IP Addresses: %s", ipAddresses),
-		fmt.Sprintf("Authority Key Id: %x", c.x509Certificate.AuthorityKeyId),
-		fmt.Sprintf("Subject Key Id  : %x", c.x509Certificate.SubjectKeyId),
+		fmt.Sprintf("Authority Key Id: %s", authorityKeyId),
+		fmt.Sprintf("Subject Key Id  : %s", formatHexArray(c.x509Certificate.SubjectKeyId)),
 		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
 		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
 		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
 	}, "\n")
 }
 
-func expiryFormat(t time.Time) string {
+func (c Certificate) Extensions() string {
+	var lines []string
+	for _, v := range ToExtensions(c.x509Certificate.Extensions) {
+		name := fmt.Sprintf("%s (%s)", v.Name, v.Oid)
+		if v.Critical {
+			name = fmt.Sprintf("%s [critical]", name)
+		}
+		lines = append(lines, fmt.Sprintf("%s\n  %s", name, v.Value))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func formatExpiry(t time.Time) string {
 
 	year, month, day, hour, minute, _ := timex.Diff(time.Now(), t)
 	if year != 0 {
@@ -213,4 +230,15 @@ func expiryFormat(t time.Time) string {
 		return fmt.Sprintf("%d hours %d minutes", hour, minute)
 	}
 	return fmt.Sprintf("%d minutes", minute)
+}
+
+func formatHexArray(b []byte) string {
+
+	buf := make([]byte, 0, 3*len(b))
+	x := buf[1*len(b) : 3*len(b)]
+	hex.Encode(x, b)
+	for i := 0; i < len(x); i += 2 {
+		buf = append(buf, x[i], x[i+1], ':')
+	}
+	return strings.ToUpper(string(buf[:len(buf)-1]))
 }

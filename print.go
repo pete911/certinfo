@@ -5,7 +5,7 @@ import (
 	"github.com/pete911/certinfo/pkg/cert"
 )
 
-func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation, printChains, printPem bool) {
+func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation, printChains, printPem, printExtensions bool) {
 
 	for _, certificateLocation := range certificateLocations {
 		if certificateLocation.Error != nil {
@@ -15,7 +15,7 @@ func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation,
 		}
 
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
-		printCertificates(certificateLocation.Certificates, printPem)
+		printCertificates(certificateLocation.Certificates, printPem, printExtensions)
 
 		if certificateLocation.VerifiedChains != nil {
 			fmt.Printf("--- %d verified chains ---\n", len(certificateLocation.VerifiedChains))
@@ -24,16 +24,21 @@ func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation,
 		if printChains {
 			for i, chain := range certificateLocation.VerifiedChains {
 				fmt.Printf("--- chain %d ---\n", i+1)
-				printCertificates(chain, printPem)
+				printCertificates(chain, printPem, printExtensions)
 			}
 		}
 	}
 }
 
-func printCertificates(certificates []cert.Certificate, printPem bool) {
+func printCertificates(certificates []cert.Certificate, printPem, printExtensions bool) {
 
 	for _, certificate := range certificates {
 		fmt.Println(certificate)
+		if printExtensions {
+			fmt.Println("--- extensions ---")
+			fmt.Print(certificate.Extensions())
+			fmt.Println()
+		}
 		fmt.Println()
 		if printPem {
 			fmt.Println(string(certificate.ToPEM()))

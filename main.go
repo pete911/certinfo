@@ -48,7 +48,7 @@ func main() {
 		PrintPemOnly(certificatesFiles, flags.Chains)
 		return
 	}
-	PrintCertificatesLocations(certificatesFiles, flags.Chains, flags.Pem)
+	PrintCertificatesLocations(certificatesFiles, flags.Chains, flags.Pem, flags.Extensions)
 }
 
 func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {

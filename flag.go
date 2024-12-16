@@ -19,6 +19,7 @@ type Flags struct {
 	IssuerLike  string
 	Insecure    bool
 	Chains      bool
+	Extensions  bool
 	Pem         bool
 	PemOnly     bool
 	Version     bool
@@ -46,6 +47,8 @@ func ParseFlags() (Flags, error) {
 		"whether a client verifies the server's certificate chain and host name (only applicable for host)")
 	flagSet.BoolVar(&flags.Chains, "chains", getBoolEnv("CERTINFO_CHAINS", false),
 		"whether to print verified chains as well (only applicable for host)")
+	flagSet.BoolVar(&flags.Extensions, "extensions", getBoolEnv("CERTINFO_EXTENSIONS", false),
+		"whether to print extensions")
 	flagSet.BoolVar(&flags.Pem, "pem", getBoolEnv("CERTINFO_PEM", false),
 		"whether to print pem as well")
 	flagSet.BoolVar(&flags.PemOnly, "pem-only", getBoolEnv("CERTINFO_PEM_ONLY", false),
