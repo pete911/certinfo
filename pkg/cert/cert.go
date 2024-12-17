@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -186,7 +187,7 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Version: %d", c.x509Certificate.Version),
 		fmt.Sprintf("Serial Number: %s", formatHexArray(c.x509Certificate.SerialNumber.Bytes())),
 		fmt.Sprintf("Signature Algorithm: %s", c.x509Certificate.SignatureAlgorithm),
-		fmt.Sprintf("Type: %s", CertificateType(c.x509Certificate)),
+		fmt.Sprintf("Type: %s", c.Type()),
 		fmt.Sprintf("Issuer: %s", c.x509Certificate.Issuer),
 		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s",
 			ValidityFormat(c.x509Certificate.NotBefore),
@@ -200,6 +201,17 @@ func (c Certificate) String() string {
 		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
 		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
 	}, "\n")
+}
+
+func (c Certificate) Type() string {
+	if c.x509Certificate.AuthorityKeyId == nil || bytes.Equal(c.x509Certificate.AuthorityKeyId, c.x509Certificate.SubjectKeyId) {
+		return "root"
+	}
+
+	if c.x509Certificate.IsCA {
+		return "intermediate"
+	}
+	return "end-entity"
 }
 
 func (c Certificate) Extensions() string {
@@ -236,7 +248,9 @@ func formatExpiry(t time.Time) string {
 }
 
 func formatHexArray(b []byte) string {
-
+	if len(b) == 0 {
+		return ""
+	}
 	buf := make([]byte, 0, 3*len(b))
 	x := buf[1*len(b) : 3*len(b)]
 	hex.Encode(x, b)

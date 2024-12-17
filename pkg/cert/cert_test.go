@@ -88,7 +88,7 @@ func Test_rootIdentification(t *testing.T) {
 		require.Len(t, certificate, 1)
 		require.Equal(t, certificate[0].x509Certificate.RawSubject, certificate[0].x509Certificate.RawIssuer)
 		require.NotEmpty(t, certificate[0].x509Certificate.AuthorityKeyId)
-		require.Equal(t, "root", CertificateType(certificate[0].x509Certificate))
+		require.Equal(t, "root", certificate[0].Type())
 	})
 
 	t.Run("given certificate authority key id is unset then identify as root", func(t *testing.T) {
@@ -96,7 +96,7 @@ func Test_rootIdentification(t *testing.T) {
 		require.Len(t, certificate, 1)
 		assert.Len(t, certificate[0].x509Certificate.AuthorityKeyId, 0)
 		assert.True(t, certificate[0].x509Certificate.IsCA)
-		require.Equal(t, "root", CertificateType(certificate[0].x509Certificate))
+		require.Equal(t, "root", certificate[0].Type())
 	})
 }
 
@@ -106,6 +106,6 @@ func Test_intermediateIdentification(t *testing.T) {
 		require.Len(t, certificate, 1)
 		require.Equal(t, certificate[0].x509Certificate.RawSubject, certificate[0].x509Certificate.RawIssuer)
 		require.NotEmpty(t, certificate[0].x509Certificate.AuthorityKeyId)
-		require.Equal(t, "intermediate", CertificateType(certificate[0].x509Certificate))
+		require.Equal(t, "intermediate", certificate[0].Type())
 	})
 }

@@ -3,6 +3,7 @@ package cert
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"golang.design/x/clipboard"
@@ -73,11 +74,43 @@ func (c CertificateLocations) SortByExpiry() CertificateLocations {
 }
 
 type CertificateLocation struct {
-	TLSVersion     uint16 // only applicable for network certificates
-	Path           string
-	Error          error
-	Certificates   Certificates
-	VerifiedChains []Certificates // only applicable for network certificates
+	TLSVersion   uint16 // only applicable for network certificates
+	Path         string
+	Error        error
+	Certificates Certificates
+}
+
+func (c CertificateLocation) Chains() ([]Certificates, error) {
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, err
+	}
+
+	// we are not verifying time and dns, because we want to work with -insecure flag as well
+	// just to see what local chains are used for verification
+	opts := x509.VerifyOptions{
+		Roots:         pool,
+		Intermediates: x509.NewCertPool(),
+	}
+	for _, cert := range c.Certificates {
+		if cert.Type() == "intermediate" {
+			opts.Intermediates.AddCert(cert.x509Certificate)
+		}
+	}
+
+	var verifiedChains []Certificates
+	for _, cert := range c.Certificates {
+		if cert.Type() == "end-entity" {
+			chains, err := cert.x509Certificate.Verify(opts)
+			if err != nil {
+				return nil, err
+			}
+			for _, chain := range chains {
+				verifiedChains = append(verifiedChains, FromX509Certificates(chain))
+			}
+		}
+	}
+	return verifiedChains, nil
 }
 
 func (c CertificateLocation) Name() string {
@@ -119,16 +152,10 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) CertificateLoc
 	connectionState := conn.ConnectionState()
 	x509Certificates := connectionState.PeerCertificates
 
-	var verifiedChains []Certificates
-	for _, chain := range connectionState.VerifiedChains {
-		verifiedChains = append(verifiedChains, FromX509Certificates(chain))
-	}
-
 	return CertificateLocation{
-		TLSVersion:     conn.ConnectionState().Version,
-		Path:           addr,
-		Certificates:   FromX509Certificates(x509Certificates),
-		VerifiedChains: verifiedChains,
+		TLSVersion:   conn.ConnectionState().Version,
+		Path:         addr,
+		Certificates: FromX509Certificates(x509Certificates),
 	}
 }
 

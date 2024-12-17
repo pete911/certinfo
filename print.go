@@ -15,33 +15,38 @@ func PrintCertificatesLocations(certificateLocations []cert.CertificateLocation,
 		}
 
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
-		printCertificates(certificateLocation.Certificates, printPem, printExtensions)
-
-		if certificateLocation.VerifiedChains != nil {
-			fmt.Printf("--- %d verified chains ---\n", len(certificateLocation.VerifiedChains))
-		}
-
-		if printChains {
-			for i, chain := range certificateLocation.VerifiedChains {
-				fmt.Printf("--- chain %d ---\n", i+1)
-				printCertificates(chain, printPem, printExtensions)
-			}
-		}
+		printCertificates(certificateLocation, printPem, printChains, printExtensions)
 	}
 }
 
-func printCertificates(certificates []cert.Certificate, printPem, printExtensions bool) {
+func printCertificates(certLocation cert.CertificateLocation, printPem, printChains, printExtensions bool) {
 
-	for _, certificate := range certificates {
-		fmt.Println(certificate)
-		if printExtensions {
-			fmt.Println("--- extensions ---")
-			fmt.Print(certificate.Extensions())
+	var prt = func(certs []cert.Certificate, printPem, printExtensions bool) {
+		for _, certificate := range certs {
+			fmt.Println(certificate)
+			if printExtensions {
+				fmt.Println("--- extensions ---")
+				fmt.Print(certificate.Extensions())
+				fmt.Println()
+			}
 			fmt.Println()
+			if printPem {
+				fmt.Println(string(certificate.ToPEM()))
+			}
 		}
-		fmt.Println()
-		if printPem {
-			fmt.Println(string(certificate.ToPEM()))
+	}
+
+	prt(certLocation.Certificates, printPem, printExtensions)
+	if printChains {
+		chains, err := certLocation.Chains()
+		if err != nil {
+			fmt.Printf("--- chains: %v ---\n", err)
+			return
+		}
+		fmt.Printf("--- %d chains ---\n", len(chains))
+		for i, chain := range chains {
+			fmt.Printf("--- chain %d ---\n", i+1)
+			prt(chain, printPem, printExtensions)
 		}
 	}
 }
@@ -54,10 +59,14 @@ func PrintPemOnly(certificateLocations []cert.CertificateLocation, printChains b
 		}
 
 		if printChains {
-			for _, chains := range certificateLocation.VerifiedChains {
-				fmt.Println()
-				for _, chain := range chains {
-					fmt.Print(string(chain.ToPEM()))
+			chains, err := certificateLocation.Chains()
+			if err != nil {
+				fmt.Printf("--- chains: %v ---\n", err)
+				continue
+			}
+			for _, chain := range chains {
+				for _, c := range chain {
+					fmt.Print(string(c.ToPEM()))
 				}
 			}
 		}
