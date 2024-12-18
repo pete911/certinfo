@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"golang.design/x/clipboard"
 	"io"
+	"log/slog"
 	"net"
 	"os"
 	"slices"
@@ -93,6 +94,8 @@ func (c CertificateLocation) Chains() ([]Certificates, error) {
 		Intermediates: x509.NewCertPool(),
 	}
 	for _, cert := range c.Certificates {
+		// do not just use index (index 0 leaf/end-entity, rest intermediate) like connection,
+		// because we can deal with certs from a bundle file
 		if cert.Type() == "intermediate" {
 			opts.Intermediates.AddCert(cert.x509Certificate)
 		}
@@ -146,6 +149,7 @@ func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) CertificateLoc
 
 	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
 	if err != nil {
+		slog.Error(fmt.Sprintf("load certificate from network %s: %v", addr, err.Error()))
 		return CertificateLocation{Path: addr, Error: err}
 	}
 
@@ -163,6 +167,7 @@ func LoadCertificatesFromFile(fileName string) CertificateLocation {
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
+		slog.Error(fmt.Sprintf("load certificate from file %s: %v", fileName, err.Error()))
 		return CertificateLocation{Path: fileName, Error: err}
 	}
 	return loadCertificate(fileName, b)
@@ -172,6 +177,7 @@ func LoadCertificateFromStdin() CertificateLocation {
 
 	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
+		slog.Error(fmt.Sprintf("load certificate from stdin: %v", err.Error()))
 		return CertificateLocation{Path: "stdin", Error: err}
 	}
 	return loadCertificate("stdin", content)
@@ -180,6 +186,7 @@ func LoadCertificateFromStdin() CertificateLocation {
 func LoadCertificateFromClipboard() CertificateLocation {
 
 	if err := clipboard.Init(); err != nil {
+		slog.Error(fmt.Sprintf("load certificate from clipboard: %v", err.Error()))
 		return CertificateLocation{Path: "clipboard", Error: err}
 	}
 
@@ -194,6 +201,7 @@ func loadCertificate(fileName string, data []byte) CertificateLocation {
 
 	certificates, err := FromBytes(bytes.TrimSpace(data))
 	if err != nil {
+		slog.Error(fmt.Sprintf("parse certificate %s bytes: %v", fileName, err.Error()))
 		return CertificateLocation{Path: fileName, Error: err}
 	}
 

@@ -14,28 +14,14 @@ type Extension struct {
 	Values   []string
 }
 
-func ToExtensions(in []pkix.Extension) []Extension {
-	var out []Extension
-	for _, v := range in {
-		name, value := parseExtension(v)
-		out = append(out, Extension{
-			Name:     name,
-			Oid:      v.Id.String(),
-			Critical: v.Critical,
-			Values:   value,
-		})
-	}
-	return out
-}
-
-func parseExtension(in pkix.Extension) (string, []string) {
+func parseExtension(in pkix.Extension) (string, []string, error) {
 	if fn, ok := extensionsByOid[in.Id.String()]; ok {
 		return fn(in.Value)
 	}
-	return "-N/A-", []string{in.Id.String()}
+	return "-N/A-", []string{in.Id.String()}, nil
 }
 
-var extensionsByOid = map[string]func(in []byte) (string, []string){
+var extensionsByOid = map[string]func(in []byte) (string, []string, error){
 	"2.5.29.35": parseAuthorityKeyIdentifier,
 	"2.5.29.14": parseSubjectKeyIdentifier,
 	"2.5.29.15": parseKeyUsage,
@@ -63,11 +49,11 @@ var extensionsByOid = map[string]func(in []byte) (string, []string){
 // authorityCertSerialNumber [2] CertificateSerialNumber  OPTIONAL }
 // -- authorityCertIssuer and authorityCertSerialNumber MUST both
 // -- be present or both be absent
-func parseAuthorityKeyIdentifier(in []byte) (string, []string) {
+func parseAuthorityKeyIdentifier(in []byte) (string, []string, error) {
 	name := "Authority Key Identifier"
 	out, err := ToAuthorityKeyIdentifier(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
 
 	fields := []string{formatHexArray(out.KeyIdentifier)}
@@ -78,17 +64,17 @@ func parseAuthorityKeyIdentifier(in []byte) (string, []string) {
 	if out.AuthorityCertSerialNumber != 0 {
 		fields = append(fields, fmt.Sprintf("Authority Cert SN: %d", out.AuthorityCertSerialNumber))
 	}
-	return name, fields
+	return name, fields, nil
 }
 
 // SubjectKeyIdentifier ::= KeyIdentifier
-func parseSubjectKeyIdentifier(in []byte) (string, []string) {
+func parseSubjectKeyIdentifier(in []byte) (string, []string, error) {
 	name := "Subject Key Identifier"
 	out := asn1.RawValue{Tag: asn1.TagOctetString}
 	if _, err := asn1.Unmarshal(in, &out); err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
-	return name, []string{formatHexArray(out.Bytes)}
+	return name, []string{formatHexArray(out.Bytes)}, nil
 }
 
 //	KeyUsage ::= BIT STRING {
@@ -102,40 +88,40 @@ func parseSubjectKeyIdentifier(in []byte) (string, []string) {
 //	   cRLSign                 (6),
 //	   encipherOnly            (7),
 //	   decipherOnly            (8) }
-func parseKeyUsage(in []byte) (string, []string) {
+func parseKeyUsage(in []byte) (string, []string, error) {
 	name := "Key Usage"
 	out, err := ToKeyUsage(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
-	return name, out
+	return name, out, nil
 }
 
-func parseCertificatePolicies(in []byte) (string, []string) {
+func parseCertificatePolicies(in []byte) (string, []string, error) {
 	name := "Certificate Policies"
 	out, err := ToCertificatePolicies(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
-	return name, out
+	return name, out, nil
 }
 
-func parseSubjectAltName(in []byte) (string, []string) {
+func parseSubjectAltName(in []byte) (string, []string, error) {
 	name := "Subject Alt. Name"
 	out, err := ToGeneralNames(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
-	return name, out
+	return name, out, nil
 }
 
-func parseExtendedKeyUsage(in []byte) (string, []string) {
+func parseExtendedKeyUsage(in []byte) (string, []string, error) {
 	name := "Extended Key Usage"
 	out, err := ToExtendedKeyUsage(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
-	return name, out
+	return name, out, nil
 }
 
 // CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
@@ -148,11 +134,11 @@ func parseExtendedKeyUsage(in []byte) (string, []string) {
 //	DistributionPointName ::= CHOICE {
 //	    fullName                [0]     GeneralNames,
 //	    nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
-func parseCRLDistributionPoints(in []byte) (string, []string) {
+func parseCRLDistributionPoints(in []byte) (string, []string, error) {
 	name := "CRL Distribution Points"
 	out, err := ToCRLDistributionPoints(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
 	var points []string
 	for _, v := range out {
@@ -170,7 +156,7 @@ func parseCRLDistributionPoints(in []byte) (string, []string) {
 			points = append(points, strings.Join(point, " "))
 		}
 	}
-	return name, points
+	return name, points, nil
 }
 
 // AuthorityInfoAccessSyntax  ::=
@@ -180,43 +166,43 @@ func parseCRLDistributionPoints(in []byte) (string, []string) {
 // accessMethod          OBJECT IDENTIFIER,
 // accessLocation        GeneralName  }
 
-func parseAuthorityInformationAccess(in []byte) (string, []string) {
+func parseAuthorityInformationAccess(in []byte) (string, []string, error) {
 	name := "Authority Information Access"
 	out, err := ToAuthorityInformationAccess(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
 	var fields []string
 	for _, v := range out {
 		fields = append(fields, fmt.Sprintf("%s - %s", v.AccessMethod, v.AccessLocation))
 	}
-	return name, fields
+	return name, fields, nil
 }
 
-func parseSignedCertificateTimestampList(in []byte) (string, []string) {
+func parseSignedCertificateTimestampList(in []byte) (string, []string, error) {
 	name := "CT Precertificate SCTs"
-	return name, []string{"..."}
+	return name, []string{"..."}, nil
 	// TODO parse "Certificate Transparency", validate against openssl x509 output
 	//out, err := ToSignedCertificateTimestampList(in)
 	//if err != nil {
-	//	return name, []string{err.Error()}
+	//	return name, nil, err
 	//}
-	//return name, []string{formatHexArray(out)}
+	//return name, []string{formatHexArray(out)}, nil
 }
 
 // BasicConstraints ::= SEQUENCE {
 // cA                      BOOLEAN DEFAULT FALSE,
 // pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
-func parseBasicConstraints(in []byte) (string, []string) {
+func parseBasicConstraints(in []byte) (string, []string, error) {
 	name := "Basic Constraints"
 	out, err := ToBasicConstraints(in)
 	if err != nil {
-		return name, []string{err.Error()}
+		return name, nil, err
 	}
 
 	fields := []string{fmt.Sprintf("CA: %t", out.CA)}
 	if out.PathLenConstraint != 0 {
 		fields = append(fields, fmt.Sprintf("PathLenConstraint: %d", out.PathLenConstraint))
 	}
-	return name, fields
+	return name, fields, nil
 }

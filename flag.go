@@ -22,6 +22,7 @@ type Flags struct {
 	Extensions  bool
 	Pem         bool
 	PemOnly     bool
+	Verbose     bool
 	Version     bool
 	Clipboard   bool
 	Args        []string
@@ -57,6 +58,8 @@ func ParseFlags() (Flags, error) {
 		flagSet.BoolVar(&flags.Clipboard, "clipboard", false,
 			"read input from clipboard")
 	}
+	flagSet.BoolVar(&flags.Verbose, "verbose", getBoolEnv("CERTINFO_VERBOSE", false),
+		"verbose logging")
 	flagSet.BoolVar(&flags.Version, "version", getBoolEnv("CERTINFO_VERSION", false),
 		"certinfo version")
 

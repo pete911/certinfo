@@ -9,13 +9,45 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/icza/gox/timex"
+	"log/slog"
 	"slices"
 	"strings"
 	"time"
 )
 
 const certificateBlockType = "CERTIFICATE"
+
+var (
+	// order is important!
+	keyUsages = []string{
+		"Digital Signature",
+		"Content Commitment",
+		"Key Encipherment",
+		"Data Encipherment",
+		"Key Agreement",
+		"Cert Sign",
+		"CRL Sign",
+		"Encipher Only",
+		"Decipher Only",
+	}
+	// order is important!
+	extKeyUsages = []string{
+		"Any",
+		"Server Auth",
+		"Client Auth",
+		"Code Signing",
+		"Email Protection",
+		"IPSEC End System",
+		"IPSEC Tunnel",
+		"IPSEC User",
+		"Time Stamping",
+		"OCSP Signing",
+		"Microsoft Server Gated Crypto",
+		"Netscape Server Gated Crypto",
+		"Microsoft Commercial Code Signing",
+		"Microsoft Kernel Code Signing",
+	}
+)
 
 type Certificates []Certificate
 
@@ -150,57 +182,87 @@ func (c Certificate) SubjectString() string {
 	return subject.String()
 }
 
-func (c Certificate) ExpiryString() string {
-
+func (c Certificate) Error() error {
 	if c.err != nil {
-		return "-"
+		return fmt.Errorf("ERROR: block at position %d: %v", c.position, c.err)
 	}
-	expiry := formatExpiry(c.x509Certificate.NotAfter)
-	if c.IsExpired() {
-		return fmt.Sprintf("EXPIRED %s ago", expiry)
-	}
-	return expiry
+	return nil
 }
 
-func (c Certificate) String() string {
+func (c Certificate) DNSNames() []string {
+	return c.x509Certificate.DNSNames
+}
 
-	if c.err != nil {
-		return fmt.Sprintf("ERROR: block at position %d: %v", c.position, c.err)
-	}
-
-	dnsNames := strings.Join(c.x509Certificate.DNSNames, ", ")
-
+func (c Certificate) IPAddresses() []string {
 	var ips []string
 	for _, ip := range c.x509Certificate.IPAddresses {
 		ips = append(ips, fmt.Sprintf("%s", ip))
 	}
-	ipAddresses := strings.Join(ips, ", ")
+	return ips
+}
 
-	keyUsage := KeyUsageToString(c.x509Certificate.KeyUsage)
-	extKeyUsage := ExtKeyUsageToString(c.x509Certificate.ExtKeyUsage)
-	var authorityKeyId string
+func (c Certificate) Version() int {
+	return c.x509Certificate.Version
+}
+
+func (c Certificate) SerialNumber() string {
+	return formatHexArray(c.x509Certificate.SerialNumber.Bytes())
+}
+
+func (c Certificate) SignatureAlgorithm() string {
+	return c.x509Certificate.SignatureAlgorithm.String()
+}
+
+func (c Certificate) Issuer() string {
+	return c.x509Certificate.Issuer.String()
+}
+
+func (c Certificate) NotBefore() time.Time {
+	return c.x509Certificate.NotBefore
+}
+
+func (c Certificate) NotAfter() time.Time {
+	return c.x509Certificate.NotAfter
+}
+
+func (c Certificate) AuthorityKeyId() string {
 	if c.x509Certificate.AuthorityKeyId != nil {
-		authorityKeyId = formatHexArray(c.x509Certificate.AuthorityKeyId)
+		return formatHexArray(c.x509Certificate.AuthorityKeyId)
 	}
+	return ""
+}
 
-	return strings.Join([]string{
-		fmt.Sprintf("Version: %d", c.x509Certificate.Version),
-		fmt.Sprintf("Serial Number: %s", formatHexArray(c.x509Certificate.SerialNumber.Bytes())),
-		fmt.Sprintf("Signature Algorithm: %s", c.x509Certificate.SignatureAlgorithm),
-		fmt.Sprintf("Type: %s", c.Type()),
-		fmt.Sprintf("Issuer: %s", c.x509Certificate.Issuer),
-		fmt.Sprintf("Validity\n    Not Before: %s\n    Not After : %s",
-			ValidityFormat(c.x509Certificate.NotBefore),
-			ValidityFormat(c.x509Certificate.NotAfter)),
-		fmt.Sprintf("Subject: %s", c.SubjectString()),
-		fmt.Sprintf("DNS Names: %s", dnsNames),
-		fmt.Sprintf("IP Addresses: %s", ipAddresses),
-		fmt.Sprintf("Authority Key Id: %s", authorityKeyId),
-		fmt.Sprintf("Subject Key Id  : %s", formatHexArray(c.x509Certificate.SubjectKeyId)),
-		fmt.Sprintf("Key Usage: %s", strings.Join(keyUsage, ", ")),
-		fmt.Sprintf("Ext Key Usage: %s", strings.Join(extKeyUsage, ", ")),
-		fmt.Sprintf("CA: %t", c.x509Certificate.IsCA),
-	}, "\n")
+func (c Certificate) SubjectKeyId() string {
+	if c.x509Certificate.SubjectKeyId != nil {
+		return formatHexArray(c.x509Certificate.SubjectKeyId)
+	}
+	return ""
+}
+
+func (c Certificate) IsCA() bool {
+	return c.x509Certificate.IsCA
+}
+
+func (c Certificate) KeyUsage() []string {
+	var out []string
+	for i, v := range keyUsages {
+		bitmask := 1 << i
+		if (int(c.x509Certificate.KeyUsage) & bitmask) == 0 {
+			continue
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+// ExtKeyUsage extended key usage string representation
+func (c Certificate) ExtKeyUsage() []string {
+
+	var extendedKeyUsageString []string
+	for _, v := range c.x509Certificate.ExtKeyUsage {
+		extendedKeyUsageString = append(extendedKeyUsageString, extKeyUsages[v])
+	}
+	return extendedKeyUsageString
 }
 
 func (c Certificate) Type() string {
@@ -213,38 +275,23 @@ func (c Certificate) Type() string {
 	}
 	return "end-entity"
 }
-
-func (c Certificate) Extensions() string {
-	var lines []string
-	for _, v := range ToExtensions(c.x509Certificate.Extensions) {
-		name := fmt.Sprintf("%s (%s)", v.Name, v.Oid)
-		if v.Critical {
-			name = fmt.Sprintf("%s [critical]", name)
+func (c Certificate) Extensions() []Extension {
+	var out []Extension
+	for _, v := range c.x509Certificate.Extensions {
+		name, value, err := parseExtension(v)
+		if err != nil {
+			// log error and set error as value
+			slog.Error(fmt.Sprintf("certificate at position %d: extension %s (%s): %v", c.position, name, v.Id.String(), err))
+			value = []string{err.Error()}
 		}
-		lines = append(lines, name)
-		for _, line := range v.Values {
-			lines = append(lines, fmt.Sprintf("  %s", line))
-		}
+		out = append(out, Extension{
+			Name:     name,
+			Oid:      v.Id.String(),
+			Critical: v.Critical,
+			Values:   value,
+		})
 	}
-	return strings.Join(lines, "\n")
-}
-
-func formatExpiry(t time.Time) string {
-
-	year, month, day, hour, minute, _ := timex.Diff(time.Now(), t)
-	if year != 0 {
-		return fmt.Sprintf("%d years %d months %d days %d hours %d minutes", year, month, day, hour, minute)
-	}
-	if month != 0 {
-		return fmt.Sprintf("%d months %d days %d hours %d minutes", month, day, hour, minute)
-	}
-	if day != 0 {
-		return fmt.Sprintf("%d days %d hours %d minutes", day, hour, minute)
-	}
-	if hour != 0 {
-		return fmt.Sprintf("%d hours %d minutes", hour, minute)
-	}
-	return fmt.Sprintf("%d minutes", minute)
+	return out
 }
 
 func formatHexArray(b []byte) string {

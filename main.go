@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/pete911/certinfo/pkg/cert"
+	"github.com/pete911/certinfo/pkg/print"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -18,6 +20,7 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	setLogger(flags.Verbose)
 
 	if flags.Version {
 		fmt.Println(Version)
@@ -41,14 +44,22 @@ func main() {
 		certificatesFiles = certificatesFiles.SortByExpiry()
 	}
 	if flags.Expiry {
-		PrintCertificatesExpiry(certificatesFiles)
+		print.Expiry(certificatesFiles)
 		return
 	}
 	if flags.PemOnly {
-		PrintPemOnly(certificatesFiles, flags.Chains)
+		print.Pem(certificatesFiles, flags.Chains)
 		return
 	}
-	PrintCertificatesLocations(certificatesFiles, flags.Chains, flags.Pem, flags.Extensions)
+	print.Locations(certificatesFiles, flags.Chains, flags.Pem, flags.Extensions)
+}
+
+func setLogger(verbose bool) {
+	level := slog.LevelError
+	if verbose {
+		level = slog.LevelDebug
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 }
 
 func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
