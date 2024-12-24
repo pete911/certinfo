@@ -15,7 +15,7 @@ github.com/stretchr/testify/require
 # golang.design/x/clipboard v0.7.0
 ## explicit; go 1.17
 golang.design/x/clipboard
-# golang.org/x/exp/shiny v0.0.0-20240909161429-701f63a606c0
+# golang.org/x/exp/shiny v0.0.0-20241217172543-b2144cdd0a67
 ## explicit; go 1.18
 golang.org/x/exp/shiny/driver/gldriver
 golang.org/x/exp/shiny/driver/internal/drawer
@@ -25,11 +25,11 @@ golang.org/x/exp/shiny/driver/internal/lifecycler
 golang.org/x/exp/shiny/driver/internal/win32
 golang.org/x/exp/shiny/driver/internal/x11key
 golang.org/x/exp/shiny/screen
-# golang.org/x/image v0.20.0
+# golang.org/x/image v0.23.0
 ## explicit; go 1.18
 golang.org/x/image/bmp
 golang.org/x/image/math/f64
-# golang.org/x/mobile v0.0.0-20240930194658-c6794c95c70b
+# golang.org/x/mobile v0.0.0-20241213221354-a87c1cf6cf46
 ## explicit; go 1.22.0
 golang.org/x/mobile/app
 golang.org/x/mobile/app/internal/callfn
@@ -42,7 +42,7 @@ golang.org/x/mobile/event/touch
 golang.org/x/mobile/geom
 golang.org/x/mobile/gl
 golang.org/x/mobile/internal/mobileinit
-# golang.org/x/sys v0.25.0
+# golang.org/x/sys v0.28.0
 ## explicit; go 1.18
 golang.org/x/sys/windows
 # gopkg.in/yaml.v3 v3.0.1
