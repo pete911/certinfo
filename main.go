@@ -65,10 +65,6 @@ func setLogger(verbose bool) {
 func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 
 	var certificateLocations cert.CertificateLocations
-	if flags.Clipboard {
-		certificateLocations = append(certificateLocations, cert.LoadCertificateFromClipboard())
-	}
-
 	if len(flags.Args) > 0 {
 		certificateLocations = append(certificateLocations, loadFromArgs(flags.Args, flags.ServerName, flags.Insecure)...)
 	}

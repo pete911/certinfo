@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
-	"golang.design/x/clipboard"
 	"io"
 	"log/slog"
 	"net"
@@ -184,20 +182,6 @@ func LoadCertificateFromStdin() CertificateLocation {
 		return CertificateLocation{Path: "stdin", Error: err}
 	}
 	return loadCertificate("stdin", content)
-}
-
-func LoadCertificateFromClipboard() CertificateLocation {
-
-	if err := clipboard.Init(); err != nil {
-		slog.Error(fmt.Sprintf("load certificate from clipboard: %v", err.Error()))
-		return CertificateLocation{Path: "clipboard", Error: err}
-	}
-
-	content := clipboard.Read(clipboard.FmtText)
-	if content == nil {
-		return CertificateLocation{Path: "clipboard", Error: errors.New("clipboard is empty")}
-	}
-	return loadCertificate("clipboard", content)
 }
 
 func loadCertificate(fileName string, data []byte) CertificateLocation {
