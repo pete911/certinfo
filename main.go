@@ -70,7 +70,7 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 	}
 
 	if len(flags.Args) > 0 {
-		certificateLocations = append(certificateLocations, loadFromArgs(flags.Args, flags.Insecure)...)
+		certificateLocations = append(certificateLocations, loadFromArgs(flags.Args, flags.ServerName, flags.Insecure)...)
 	}
 
 	if isStdin() {
@@ -87,7 +87,7 @@ func LoadCertificatesLocations(flags Flags) cert.CertificateLocations {
 	return nil
 }
 
-func loadFromArgs(args []string, insecure bool) cert.CertificateLocations {
+func loadFromArgs(args []string, serverName string, insecure bool) cert.CertificateLocations {
 
 	out := make(chan cert.CertificateLocation)
 	go func() {
@@ -97,7 +97,7 @@ func loadFromArgs(args []string, insecure bool) cert.CertificateLocations {
 			go func() {
 				defer wg.Done()
 				if isTCPNetworkAddress(arg) {
-					out <- cert.LoadCertificatesFromNetwork(arg, insecure)
+					out <- cert.LoadCertificatesFromNetwork(arg, serverName, insecure)
 					return
 				}
 				out <- cert.LoadCertificatesFromFile(arg)

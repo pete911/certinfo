@@ -145,9 +145,12 @@ func (c CertificateLocation) SortByExpiry() CertificateLocation {
 	return c
 }
 
-func LoadCertificatesFromNetwork(addr string, tlsSkipVerify bool) CertificateLocation {
+func LoadCertificatesFromNetwork(addr string, serverName string, tlsSkipVerify bool) CertificateLocation {
 
-	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{InsecureSkipVerify: tlsSkipVerify})
+	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: tlsDialTimeout}, "tcp", addr, &tls.Config{
+		InsecureSkipVerify: tlsSkipVerify,
+		ServerName:         serverName,
+	})
 	if err != nil {
 		slog.Error(fmt.Sprintf("load certificate from network %s: %v", addr, err.Error()))
 		return CertificateLocation{Path: addr, Error: err}

@@ -30,6 +30,7 @@ certinfo [flags] [<file>|<host:port> ...]
 | -no-expired   | do not print expired certificates                                                                 |
 | -pem          | whether to print pem as well                                                                      |
 | -pem-only     | whether to print only pem (useful for downloading certs from host)                                |
+| -server-name  | verify the hostname on the returned certificates, useful for testing SNI                          |
 | -sort-expiry  | sort certificates by expiration date                                                              |
 | -subject-like | print certificates with issuer field containing supplied string                                   |
 | -version      | certinfo version                                                                                  |
@@ -150,9 +151,14 @@ Expiry: 4 years 10 months 17 days 4 hours 29 minutes
 ```
 
 ### show certificate with specific subject
-This example shows AWS RDS certificates for specific region (we can also see AWS for 100 years expiration)
+This example shows AWS RDS certificates for specific region (we can also see AWS started using 100 years expiration)
 - show only eu-west-2 certs `curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem | certinfo -issuer-like eu-west-2`
 - download only eu-west-2 certs `curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem | certinfo -issuer-like eu-west-2 -pem-only > rds-eu-west-2.pem`
+
+### verify SNI certificates
+Specific host can be set by `server-name` flag. This is useful if we need to verify that load balancer is correctly
+using certificates for different hosts: `certinfo -server-name <host> <load-balancer|proxy>` e.g.
+`certinfo -server-name tabletmag.com  cname.vercel-dns.com:443` (tabletmag certificate behind vercel).
 
 ### local root certs
 

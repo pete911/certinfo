@@ -17,6 +17,7 @@ type Flags struct {
 	SortExpiry  bool
 	SubjectLike string
 	IssuerLike  string
+	ServerName  string
 	Insecure    bool
 	Chains      bool
 	Extensions  bool
@@ -44,6 +45,8 @@ func ParseFlags() (Flags, error) {
 		"print certificates with issuer field containing supplied string")
 	flagSet.StringVar(&flags.IssuerLike, "issuer-like", getStringEnv("CERTINFO_ISSUER_LIKE", ""),
 		"print certificates with subject field containing supplied string")
+	flagSet.StringVar(&flags.ServerName, "server-name", getStringEnv("CERTINFO_SERVER_NAME", ""),
+		"verify the hostname on the returned certificates, useful for testing SNI")
 	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
 		"whether a client verifies the server's certificate chain and host name (only applicable for host)")
 	flagSet.BoolVar(&flags.Chains, "chains", getBoolEnv("CERTINFO_CHAINS", false),
