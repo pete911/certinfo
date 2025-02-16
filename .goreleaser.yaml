@@ -12,10 +12,10 @@ builds:
       - -X main.Version={{.Version}}
 
 archives:
-  - format: tar.gz
+  - formats: [ 'tar.gz' ]
     format_overrides:
     - goos: windows
-      format: zip
+      formats: [ 'zip' ]
 checksum:
   name_template: 'checksums.txt'
 snapshot:
