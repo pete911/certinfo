@@ -3,6 +3,7 @@ package print
 import (
 	"fmt"
 	"github.com/pete911/certinfo/pkg/cert"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,9 @@ func Expiry(certificateLocations []cert.CertificateLocation) {
 		for _, certificate := range certificateLocation.Certificates {
 
 			fmt.Printf("Subject: %s\n", certificate.SubjectString())
+			if len(certificate.DNSNames()) != 0 {
+				fmt.Printf("DNS Names: %s\n", strings.Join(certificate.DNSNames(), ", "))
+			}
 			fmt.Printf("Expiry: %s\n", expiryString(certificate))
 			fmt.Println()
 		}
