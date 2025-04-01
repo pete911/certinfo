@@ -190,6 +190,11 @@ func (c Certificate) Error() error {
 }
 
 func (c Certificate) DNSNames() []string {
+	if c.x509Certificate == nil {
+		// this is called with -expiry flag as well, this call does not check if there is cert error
+		// so we need to check for nil
+		return nil
+	}
 	return c.x509Certificate.DNSNames
 }
 

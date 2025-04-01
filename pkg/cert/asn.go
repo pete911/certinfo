@@ -442,6 +442,29 @@ type GeneralName struct {
 	Value string
 }
 
+//	GeneralName ::= CHOICE {
+//	    otherName                 [0] OtherName ::= SEQUENCE {
+//	        type-id    OBJECT IDENTIFIER,
+//	        value      [0] EXPLICIT ANY DEFINED BY type-id
+//	    },
+//	    rfc822Name                [1] IA5String,
+//	    dNSName                   [2] IA5String,
+//	    x400Address               [3] ORAddress,
+//	    directoryName             [4] Name ::= CHOICE { -- only one possibility for now --
+//	        rdnSequence  RDNSequence ::= SEQUENCE OF RelativeDistinguishedName ::= SET SIZE (1..MAX) OF AttributeTypeAndValue ::= SEQUENCE {
+//	            type     AttributeType ::= OBJECT IDENTIFIER,
+//	            value    AttributeValue ::= ANY -- DEFINED BY AttributeType
+//	        }
+//	    },
+//	    ediPartyName              [5] EDIPartyName ::= SEQUENCE {
+//	        nameAssigner              [0] DirectoryString OPTIONAL,
+//	        partyName                 [1] DirectoryString
+//	    },
+//	    uniformResourceIdentifier [6] IA5String,
+//	    iPAddress                 [7] OCTET STRING,
+//	    registeredID              [8] OBJECT IDENTIFIER }
+//
+// TODO - general name can be IA5String, ORAddress ... as well
 func toGeneralName(in asn1.RawValue) GeneralName {
 	if len(generalNames) <= in.Tag {
 		return GeneralName{}
