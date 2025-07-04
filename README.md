@@ -2,6 +2,9 @@
 
 [![pipeline](https://github.com/pete911/certinfo/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pete911/certinfo/actions/workflows/pipeline.yml)
 
+> [!WARNING]  
+> If you installed previous versions (before `v1.0.34`) via brew, you need to reinstall (brew remove certinfo && brew install certinfo) to get updates
+
 Similar to `openssl x509 -in <file> -text` command, but handles chains, multiple files and TCP addresses. TLS/SSL
 version prints as well when using TCP address argument.
 

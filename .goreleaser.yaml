@@ -1,3 +1,4 @@
+version: 2
 builds:
   - env:
       - CGO_ENABLED=0
@@ -30,7 +31,7 @@ release:
   github:
     owner: pete911
     name: certinfo
-brews:
+homebrew_casks:
   - repository:
       owner: pete911
       name: homebrew-tap
@@ -38,8 +39,3 @@ brews:
     name: certinfo
     homepage: "https://github.com/pete911/certinfo"
     description: "Print x509 certificate info."
-    directory: Formula
-    install: |
-      bin.install "certinfo"
-    test: |
-      assert_match /Usage/, shell_output("#{bin}/certinfo -h", 0)
