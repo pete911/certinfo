@@ -39,3 +39,10 @@ homebrew_casks:
     name: certinfo
     homepage: "https://github.com/pete911/certinfo"
     description: "Print x509 certificate info."
+    hooks:
+       post:
+         install: |
+           if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/certinfo"]
+           end
+
