@@ -244,6 +244,10 @@ func (c Certificate) SubjectKeyId() string {
 	return ""
 }
 
+func (c Certificate) PublicKeyAlgorithm() string {
+	return c.x509Certificate.PublicKeyAlgorithm.String()
+}
+
 func (c Certificate) IsCA() bool {
 	return c.x509Certificate.IsCA
 }

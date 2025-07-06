@@ -95,7 +95,9 @@ Subject: CN=*.vault.com
 DNS Names: *.vault.com, vault.com
 IP Addresses:
 Authority Key Id: 40c2bd278ecc348330a233d7fb6cb3f0b42c80ce
-Subject Key Id  : 6b8c8d1da18cbb8cd64437ed0a9c8a0fef673821
+Subject Key
+    Id       : 6b8c8d1da18cbb8cd64437ed0a9c8a0fef673821
+    Algorithm: RSA
 Key Usage: Digital Signature, Key Encipherment
 Ext Key Usage: Server Auth, Client Auth
 CA: false
@@ -112,7 +114,9 @@ Subject: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.c
 DNS Names:
 IP Addresses:
 Authority Key Id: 3a9a8507106728b6eff6bd05416e20c194da0fde
-Subject Key Id  : 40c2bd278ecc348330a233d7fb6cb3f0b42c80ce
+Subject Key
+    Id       : 40c2bd278ecc348330a233d7fb6cb3f0b42c80ce
+    Algorithm: RSA
 Key Usage: Cert Sign, CRL Sign
 Ext Key Usage:
 CA: true
@@ -129,7 +133,9 @@ Subject: CN=Go Daddy Root Certificate Authority - G2,O=GoDaddy.com\, Inc.,L=Scot
 DNS Names:
 IP Addresses:
 Authority Key Id: d2c4b0d291d44c1171b361cb3da1fedda86ad4e3
-Subject Key Id  : 3a9a8507106728b6eff6bd05416e20c194da0fde
+Subject Key
+    Id       : 3a9a8507106728b6eff6bd05416e20c194da0fde
+    Algorithm: RSA
 Key Usage: Cert Sign, CRL Sign
 Ext Key Usage:
 CA: true
