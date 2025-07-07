@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-type SubjectPublicKeyInfo interface {
-	String() string
-}
-
 type RSAPublicKeyInfo struct {
 	Modulus        *big.Int
 	PublicExponent *big.Int
@@ -48,7 +44,7 @@ func (p RSAPublicKeyInfo) String() string {
 // algorithm            OBJECT IDENTIFIER,
 // parameters           ANY DEFINED BY algorithm OPTIONAL  }
 
-func ToSubjectPublicKeyInfo(in []byte) (SubjectPublicKeyInfo, error) {
+func ToSubjectPublicKeyInfo(in []byte) (fmt.Stringer, error) {
 	var out struct {
 		Algorithm struct {
 			Algorithm  asn1.ObjectIdentifier
