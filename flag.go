@@ -19,6 +19,7 @@ type Flags struct {
 	Insecure    bool
 	Chains      bool
 	Extensions  bool
+	PublicKey   bool
 	Signature   bool
 	Pem         bool
 	PemOnly     bool
@@ -51,6 +52,8 @@ func ParseFlags() (Flags, error) {
 		"whether to print verified chains as well (only applicable for host)")
 	flagSet.BoolVar(&flags.Extensions, "extensions", getBoolEnv("CERTINFO_EXTENSIONS", false),
 		"whether to print extensions")
+	flagSet.BoolVar(&flags.PublicKey, "public-key", getBoolEnv("CERTINFO_PUBLIC_KEY", false),
+		"whether to print public key info")
 	flagSet.BoolVar(&flags.Signature, "signature", getBoolEnv("CERTINFO_SIGNATURE", false),
 		"whether to print signature")
 	flagSet.BoolVar(&flags.Pem, "pem", getBoolEnv("CERTINFO_PEM", false),
