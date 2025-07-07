@@ -248,6 +248,10 @@ func (c Certificate) PublicKeyAlgorithm() string {
 	return c.x509Certificate.PublicKeyAlgorithm.String()
 }
 
+func (c Certificate) Signature() string {
+	return formatHexArray(c.x509Certificate.Signature)
+}
+
 func (c Certificate) IsCA() bool {
 	return c.x509Certificate.IsCA
 }

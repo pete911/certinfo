@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Locations(certificateLocations []cert.CertificateLocation, printChains, printPem, printExtensions bool) {
+func Locations(certificateLocations []cert.CertificateLocation, printChains, printPem, printExtensions, printSignature bool) {
 
 	for _, certificateLocation := range certificateLocations {
 		if certificateLocation.Error != nil {
@@ -19,7 +19,7 @@ func Locations(certificateLocations []cert.CertificateLocation, printChains, pri
 		}
 
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
-		printCertificates(certificateLocation.Certificates, printPem, printExtensions)
+		printCertificates(certificateLocation.Certificates, printPem, printExtensions, printSignature)
 
 		if printChains {
 			chains, err := certificateLocation.Chains()
@@ -36,16 +36,16 @@ func Locations(certificateLocations []cert.CertificateLocation, printChains, pri
 			}
 			for i, chain := range chains {
 				fmt.Printf(" -- [chain %d] -- \n", i+1)
-				printCertificates(chain, printPem, printExtensions)
+				printCertificates(chain, printPem, printExtensions, printSignature)
 			}
 		}
 	}
 }
 
-func printCertificates(certs cert.Certificates, printPem, printExtensions bool) {
+func printCertificates(certs cert.Certificates, printPem, printExtensions, printSignature bool) {
 
 	for _, certificate := range certs {
-		printCertificate(certificate, printExtensions)
+		printCertificate(certificate, printExtensions, printSignature)
 		fmt.Println()
 		if printPem {
 			fmt.Println(string(certificate.ToPEM()))
@@ -53,7 +53,7 @@ func printCertificates(certs cert.Certificates, printPem, printExtensions bool) 
 	}
 }
 
-func printCertificate(certificate cert.Certificate, printExtensions bool) {
+func printCertificate(certificate cert.Certificate, printExtensions, printSignature bool) {
 
 	if certificate.Error() != nil {
 		slog.Error(certificate.Error().Error())
@@ -80,19 +80,25 @@ func printCertificate(certificate cert.Certificate, printExtensions bool) {
 	fmt.Printf("Ext Key Usage: %s\n", strings.Join(certificate.ExtKeyUsage(), ", "))
 	fmt.Printf("CA: %t\n", certificate.IsCA())
 
-	if !printExtensions {
-		return
+	if printExtensions {
+		fmt.Println("Extensions:")
+		for _, extension := range certificate.Extensions() {
+			name := fmt.Sprintf("%s (%s)", extension.Name, extension.Oid)
+			if extension.Critical {
+				name = fmt.Sprintf("%s [critical]", name)
+			}
+			fmt.Printf("    %s\n", name)
+			for _, line := range extension.Values {
+				fmt.Printf("        %s\n", line)
+			}
+		}
 	}
 
-	fmt.Println("Extensions:")
-	for _, extension := range certificate.Extensions() {
-		name := fmt.Sprintf("%s (%s)", extension.Name, extension.Oid)
-		if extension.Critical {
-			name = fmt.Sprintf("%s [critical]", name)
-		}
-		fmt.Printf("    %s\n", name)
-		for _, line := range extension.Values {
-			fmt.Printf("        %s\n", line)
+	if printSignature {
+		fmt.Printf("Signature Algorithm: %s\n", certificate.SignatureAlgorithm())
+		fmt.Println("Signature Value")
+		for _, line := range splitString(certificate.Signature(), "    ", 54) {
+			fmt.Println(line)
 		}
 	}
 }
@@ -100,4 +106,22 @@ func printCertificate(certificate cert.Certificate, printExtensions bool) {
 func validityFormat(t time.Time) string {
 	// format for NotBefore and NotAfter fields to make output similar to openssl
 	return t.Format("Jan _2 15:04:05 2006 MST")
+}
+
+func splitString(in, prefix string, size int) []string {
+	if len(in) <= size {
+		return []string{prefix + in}
+	}
+
+	var chunk string
+	var out []string
+	for {
+		in, chunk = in[size:], in[:size]
+		out = append(out, prefix+chunk)
+		if len(in) <= size {
+			out = append(out, prefix+in)
+			break
+		}
+	}
+	return out
 }

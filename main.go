@@ -51,7 +51,7 @@ func main() {
 		print.Pem(certificatesFiles, flags.Chains)
 		return
 	}
-	print.Locations(certificatesFiles, flags.Chains, flags.Pem, flags.Extensions)
+	print.Locations(certificatesFiles, flags.Chains, flags.Pem, flags.Extensions, flags.Signature)
 }
 
 func setLogger(verbose bool) {

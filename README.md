@@ -33,6 +33,7 @@ certinfo [flags] [<file>|<host:port> ...]
 | -pem          | whether to print pem as well                                                                      |
 | -pem-only     | whether to print only pem (useful for downloading certs from host)                                |
 | -server-name  | verify the hostname on the returned certificates, useful for testing SNI                          |
+| -signature    | whether to print signature                                                                        |
 | -sort-expiry  | sort certificates by expiration date                                                              |
 | -subject-like | print certificates with issuer field containing supplied string                                   |
 | -version      | certinfo version                                                                                  |
