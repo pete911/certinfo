@@ -4,6 +4,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"fmt"
+	"github.com/pete911/certinfo/pkg/cert/format"
 	"strings"
 )
 
@@ -56,7 +57,7 @@ func parseAuthorityKeyIdentifier(in []byte) (string, []string, error) {
 		return name, nil, err
 	}
 
-	fields := []string{formatHexArray(out.KeyIdentifier)}
+	fields := []string{format.HexArray(out.KeyIdentifier)}
 	if out.AuthorityCertIssuer != nil {
 		v := strings.Join(out.AuthorityCertIssuer, ", ")
 		fields = append(fields, fmt.Sprintf("Authority Cert. Issuer: %s", v))
@@ -74,7 +75,7 @@ func parseSubjectKeyIdentifier(in []byte) (string, []string, error) {
 	if _, err := asn1.Unmarshal(in, &out); err != nil {
 		return name, nil, err
 	}
-	return name, []string{formatHexArray(out.Bytes)}, nil
+	return name, []string{format.HexArray(out.Bytes)}, nil
 }
 
 //	KeyUsage ::= BIT STRING {
