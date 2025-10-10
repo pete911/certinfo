@@ -24,6 +24,7 @@ type Flags struct {
 	PemOnly     bool
 	Verbose     bool
 	Version     bool
+	More        bool
 	Args        []string
 }
 
@@ -61,6 +62,7 @@ func ParseFlags() (Flags, error) {
 		"verbose logging")
 	flagSet.BoolVar(&flags.Version, "version", getBoolEnv("CERTINFO_VERSION", false),
 		"certinfo version")
+	flagSet.BoolVar(&flags.More, "more", getBoolEnv("CERTINFO_MORE", false), "combination of '-pem -signature -chains'")
 
 	flagSet.Usage = func() {
 		fmt.Fprint(flagSet.Output(), "Usage: certinfo [flags] [<file>|<host:port> ...]\n")
@@ -72,6 +74,14 @@ func ParseFlags() (Flags, error) {
 		return Flags{}, err
 	}
 	flags.Args = flagSet.Args()
+
+	// Combination of flags
+	if flags.More {
+		flags.Pem = true
+		flags.Signature = true
+		flags.Chains = true
+	}
+
 	return flags, nil
 }
 
