@@ -36,6 +36,7 @@ certinfo [flags] [<file>|<host:port> ...]
 | -signature    | whether to print signature                                                                        |
 | -sort-expiry  | sort certificates by expiration date                                                              |
 | -subject-like | print certificates with issuer field containing supplied string                                   |
+| -more         | use a combination of the '-pem -signature -chains' flags                                          |
 | -version      | certinfo version                                                                                  |
 | -help         | help                                                                                              |
 +---------------+---------------------------------------------------------------------------------------------------+
