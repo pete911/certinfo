@@ -1,6 +1,6 @@
 module github.com/pete911/certinfo
 
-go 1.25
+go 1.24
 
 require github.com/stretchr/testify v1.11.1
 
