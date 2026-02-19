@@ -3,12 +3,12 @@ package print
 import (
 	"fmt"
 	"github.com/pete911/certinfo/pkg/cert"
+	"github.com/pete911/certinfo/pkg/cert/format"
 	"log/slog"
 	"strings"
-	"time"
 )
 
-func Locations(certificateLocations []cert.CertificateLocation, printChains, printPem, printExtensions, printSignature bool) {
+func Locations(certificateLocations []cert.CertificateLocation, printChains, printPem, printExtensions, printPublicKey, printSignature bool) {
 
 	for _, certificateLocation := range certificateLocations {
 		if certificateLocation.Error != nil {
@@ -19,7 +19,7 @@ func Locations(certificateLocations []cert.CertificateLocation, printChains, pri
 		}
 
 		fmt.Printf("--- [%s] ---\n", certificateLocation.Name())
-		printCertificates(certificateLocation.Certificates, printPem, printExtensions, printSignature)
+		printCertificates(certificateLocation.Certificates, printPem, printExtensions, printPublicKey, printSignature)
 
 		if printChains {
 			chains, err := certificateLocation.Chains()
@@ -36,16 +36,16 @@ func Locations(certificateLocations []cert.CertificateLocation, printChains, pri
 			}
 			for i, chain := range chains {
 				fmt.Printf(" -- [chain %d] -- \n", i+1)
-				printCertificates(chain, printPem, printExtensions, printSignature)
+				printCertificates(chain, printPem, printExtensions, printPublicKey, printSignature)
 			}
 		}
 	}
 }
 
-func printCertificates(certs cert.Certificates, printPem, printExtensions, printSignature bool) {
+func printCertificates(certs cert.Certificates, printPem, printExtensions, printPublicKey, printSignature bool) {
 
 	for _, certificate := range certs {
-		printCertificate(certificate, printExtensions, printSignature)
+		printCertificate(certificate, printExtensions, printPublicKey, printSignature)
 		fmt.Println()
 		if printPem {
 			fmt.Println(string(certificate.ToPEM()))
@@ -53,7 +53,7 @@ func printCertificates(certs cert.Certificates, printPem, printExtensions, print
 	}
 }
 
-func printCertificate(certificate cert.Certificate, printExtensions, printSignature bool) {
+func printCertificate(certificate cert.Certificate, printExtensions, printPublicKey, printSignature bool) {
 
 	if certificate.Error() != nil {
 		slog.Error(certificate.Error().Error())
@@ -67,8 +67,8 @@ func printCertificate(certificate cert.Certificate, printExtensions, printSignat
 	fmt.Printf("Type: %s\n", certificate.Type())
 	fmt.Printf("Issuer: %s\n", certificate.Issuer())
 	fmt.Println("Validity")
-	fmt.Printf("    Not Before: %s\n", validityFormat(certificate.NotBefore()))
-	fmt.Printf("    Not After : %s\n", validityFormat(certificate.NotAfter()))
+	fmt.Printf("    Not Before: %s\n", format.Validity(certificate.NotBefore()))
+	fmt.Printf("    Not After : %s\n", format.Validity(certificate.NotAfter()))
 	fmt.Printf("Subject: %s\n", certificate.SubjectString())
 	fmt.Printf("DNS Names: %s\n", strings.Join(certificate.DNSNames(), ", "))
 	fmt.Printf("IP Addresses: %s\n", strings.Join(certificate.IPAddresses(), ", "))
@@ -94,34 +94,15 @@ func printCertificate(certificate cert.Certificate, printExtensions, printSignat
 		}
 	}
 
+	if printPublicKey {
+		fmt.Println(certificate.SubjectPublicKeyInfo())
+	}
+
 	if printSignature {
 		fmt.Printf("Signature Algorithm: %s\n", certificate.SignatureAlgorithm())
 		fmt.Println("Signature Value")
-		for _, line := range splitString(certificate.Signature(), "    ", 54) {
+		for _, line := range format.SplitString(certificate.Signature(), "    ", 54) {
 			fmt.Println(line)
 		}
 	}
-}
-
-func validityFormat(t time.Time) string {
-	// format for NotBefore and NotAfter fields to make output similar to openssl
-	return t.Format("Jan _2 15:04:05 2006 MST")
-}
-
-func splitString(in, prefix string, size int) []string {
-	if len(in) <= size {
-		return []string{prefix + in}
-	}
-
-	var chunk string
-	var out []string
-	for {
-		in, chunk = in[size:], in[:size]
-		out = append(out, prefix+chunk)
-		if len(in) <= size {
-			out = append(out, prefix+in)
-			break
-		}
-	}
-	return out
 }

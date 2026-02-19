@@ -5,10 +5,10 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
-	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/pete911/certinfo/pkg/cert/format"
 	"log/slog"
 	"slices"
 	"strings"
@@ -211,11 +211,22 @@ func (c Certificate) Version() int {
 }
 
 func (c Certificate) SerialNumber() string {
-	return formatHexArray(c.x509Certificate.SerialNumber.Bytes())
+	return format.HexArray(c.x509Certificate.SerialNumber.Bytes())
 }
 
 func (c Certificate) SignatureAlgorithm() string {
 	return c.x509Certificate.SignatureAlgorithm.String()
+}
+
+func (c Certificate) SubjectPublicKeyInfo() string {
+	info, err := ToSubjectPublicKeyInfo(c.x509Certificate.RawSubjectPublicKeyInfo)
+	if err != nil {
+		return err.Error()
+	}
+	if info != nil {
+		return info.String()
+	}
+	return ""
 }
 
 func (c Certificate) Issuer() string {
@@ -232,14 +243,14 @@ func (c Certificate) NotAfter() time.Time {
 
 func (c Certificate) AuthorityKeyId() string {
 	if c.x509Certificate.AuthorityKeyId != nil {
-		return formatHexArray(c.x509Certificate.AuthorityKeyId)
+		return format.HexArray(c.x509Certificate.AuthorityKeyId)
 	}
 	return ""
 }
 
 func (c Certificate) SubjectKeyId() string {
 	if c.x509Certificate.SubjectKeyId != nil {
-		return formatHexArray(c.x509Certificate.SubjectKeyId)
+		return format.HexArray(c.x509Certificate.SubjectKeyId)
 	}
 	return ""
 }
@@ -249,7 +260,7 @@ func (c Certificate) PublicKeyAlgorithm() string {
 }
 
 func (c Certificate) Signature() string {
-	return formatHexArray(c.x509Certificate.Signature)
+	return format.HexArray(c.x509Certificate.Signature)
 }
 
 func (c Certificate) IsCA() bool {
@@ -305,17 +316,4 @@ func (c Certificate) Extensions() []Extension {
 		})
 	}
 	return out
-}
-
-func formatHexArray(b []byte) string {
-	if len(b) == 0 {
-		return ""
-	}
-	buf := make([]byte, 0, 3*len(b))
-	x := buf[1*len(b) : 3*len(b)]
-	hex.Encode(x, b)
-	for i := 0; i < len(x); i += 2 {
-		buf = append(buf, x[i], x[i+1], ':')
-	}
-	return strings.ToUpper(string(buf[:len(buf)-1]))
 }
