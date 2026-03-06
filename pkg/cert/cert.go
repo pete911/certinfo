@@ -199,6 +199,9 @@ func (c Certificate) DNSNames() []string {
 }
 
 func (c Certificate) IPAddresses() []string {
+	if c.x509Certificate == nil {
+		return nil
+	}
 	var ips []string
 	for _, ip := range c.x509Certificate.IPAddresses {
 		ips = append(ips, fmt.Sprintf("%s", ip))

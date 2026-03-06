@@ -153,6 +153,7 @@ func LoadCertificatesFromNetwork(addr string, serverName string, tlsSkipVerify b
 		slog.Error(fmt.Sprintf("load certificate from network %s: %v", addr, err.Error()))
 		return CertificateLocation{Path: addr, Error: err}
 	}
+	defer conn.Close()
 
 	connectionState := conn.ConnectionState()
 	x509Certificates := connectionState.PeerCertificates

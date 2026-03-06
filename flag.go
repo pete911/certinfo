@@ -41,9 +41,9 @@ func ParseFlags() (Flags, error) {
 	flagSet.BoolVar(&flags.SortExpiry, "sort-expiry", getBoolEnv("CERTINFO_SORT_EXPIRY", false),
 		"sort certificates by expiration date")
 	flagSet.StringVar(&flags.SubjectLike, "subject-like", getStringEnv("CERTINFO_SUBJECT_LIKE", ""),
-		"print certificates with issuer field containing supplied string")
-	flagSet.StringVar(&flags.IssuerLike, "issuer-like", getStringEnv("CERTINFO_ISSUER_LIKE", ""),
 		"print certificates with subject field containing supplied string")
+	flagSet.StringVar(&flags.IssuerLike, "issuer-like", getStringEnv("CERTINFO_ISSUER_LIKE", ""),
+		"print certificates with issuer field containing supplied string")
 	flagSet.StringVar(&flags.ServerName, "server-name", getStringEnv("CERTINFO_SERVER_NAME", ""),
 		"verify the hostname on the returned certificates, useful for testing SNI")
 	flagSet.BoolVar(&flags.Insecure, "insecure", getBoolEnv("CERTINFO_INSECURE", false),
@@ -100,8 +100,8 @@ func getBoolEnv(envName string, defaultValue bool) bool {
 		return defaultValue
 	}
 
-	if intValue, err := strconv.ParseBool(env); err == nil {
-		return intValue
+	if boolValue, err := strconv.ParseBool(env); err == nil {
+		return boolValue
 	}
 	return defaultValue
 }
