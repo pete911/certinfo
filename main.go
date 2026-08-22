@@ -97,16 +97,14 @@ func loadFromArgs(args []string, serverName string, insecure bool) cert.Certific
 	go func() {
 		var wg sync.WaitGroup
 		for _, arg := range args {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				if isTCPNetworkAddress(arg) {
 					arg = toTCPNetworkAddress(arg)
 					out <- cert.LoadCertificatesFromNetwork(arg, serverName, insecure)
 					return
 				}
 				out <- cert.LoadCertificatesFromFile(arg)
-			}()
+			})
 		}
 		wg.Wait()
 		close(out)
